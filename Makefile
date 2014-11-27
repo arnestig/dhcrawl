@@ -1,4 +1,4 @@
-PROGNAME=mprobe
+PROGNAME=dhcrawl
 
 CXX = g++
 INSTALL = install -o root -g root -m 755

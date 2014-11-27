@@ -1,4 +1,4 @@
-mprobe
+dhcrawl
 ======
 
-DHCP MAC probe - Tailor DHCP requests with specific MAC address to see what DHCP offers are received
+dhcrawl - Probe DHCP servers to see what offers are sent
