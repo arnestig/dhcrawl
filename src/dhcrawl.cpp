@@ -144,6 +144,12 @@ void dhcp_setup()
 
 int main( int argc, char *argv[] )
 {
+	// check that we're running as superuser privileges for binding on DHCP port
+	if ( geteuid() != 0 ) {
+		std::cerr << "This application needs to run with super-user privileges." << std::endl;
+		exit(1);
+	}
+
     dhcp_setup();
     dhcp_discover( "40:f4:07:dd:f8:41" );
 
