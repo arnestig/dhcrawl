@@ -19,40 +19,41 @@
     along with dhcrawl.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
+#ifndef __DHCP_H__
+#define __DHCP_H__
+
+#include <vector>
 #include <iostream>
+#include <netdb.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <signal.h>
+#include <string.h>
+#include <sys/select.h>
+#include <sys/socket.h>
 
-#include "dhcp.h"
-
-
-void handle_signal( int signal )
+class DHCP
 {
-	if ( signal == SIGINT ) {
-		// cleanup
-		exit( 0 );
-	};
-}
+	public:
+		DHCP();
+		~DHCP();
 
-int main( int argc, char *argv[] )
-{
-	signal( SIGINT, handle_signal );
+		void start();
+		void stop();
+		void waitForData();
+		void inform( std::string hardware );
 
-	// check that we're running as superuser privileges for binding on DHCP port
-	if ( geteuid() != 0 ) {
-		std::cerr << "This application needs to run with super-user privileges." << std::endl;
-		exit(1);
-	}
-	DHCP *dhcpServer = new DHCP();
-	dhcpServer->start();
-	dhcpServer->inform( "00:11:22:33:44:55" );
-	while( 1 ) {
-		dhcpServer->waitForData();
-	}
-	dhcpServer->stop();
-	delete dhcpServer;
+		int DHCPsocket;
 
-    return 0;
-}
+	private:
+		void addpacket( unsigned char* pktbuf, char *buffer, int size );
 
+    	struct sockaddr_in dhcp_to;
+    	struct sockaddr_in name;
+		pthread_mutex_t dhcp_read_mutex;
+		pthread_t worker;
+		int offset;
+		char xid[4];
+		static void *work( void *context );
+};
+
+#endif
