@@ -19,39 +19,37 @@
     along with dhcrawl.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include <iostream>
-#include <stdlib.h>
-#include <unistd.h>
-#include <signal.h>
-
 #include "resources.h"
 
-void handle_signal( int signal )
+Resources* Resources::instance = NULL;
+
+Resources::Resources()
+    :   dhcp( NULL )
 {
-	if ( signal == SIGINT ) {
-		Resources::Instance()->DestroyInstance();
-		exit( 0 );
-	};
+    dhcp = new DHCP();
 }
 
-int main( int argc, char *argv[] )
+Resources::~Resources()
 {
-	signal( SIGINT, handle_signal );
+	delete dhcp;
+}
 
-	// check that we're running as superuser privileges for binding on DHCP port
-	if ( geteuid() != 0 ) {
-		std::cerr << "This application needs to run with super-user privileges." << std::endl;
-		exit(1);
-	}
-	DHCP *dhcpInstance = Resources::Instance()->getDHCP();
-	dhcpInstance->start();
-	dhcpInstance->inform( "00:23:14:8f:46:d4" );
-	dhcpInstance->inform( "00:23:14:8f:46:d4" );
-	while( 1 ) {
-		dhcpInstance->waitForData();
-	}
-	dhcpInstance->stop();
+void Resources::DestroyInstance()
+{
+    delete instance;
+    instance = NULL;
+}
 
-    return 0;
+Resources* Resources::Instance()
+{
+    if ( instance == NULL ) {
+        instance = new Resources();
+    }
+    return instance;
+}
+
+DHCP* Resources::getDHCP() const
+{
+    return dhcp;
 }
 
