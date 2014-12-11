@@ -26,10 +26,16 @@
 
 #include "resources.h"
 
+void cleanup()
+{
+	//dhcpInstance->stop();
+	Resources::Instance()->DestroyInstance();
+}
+
 void handle_signal( int signal )
 {
 	if ( signal == SIGINT ) {
-		Resources::Instance()->DestroyInstance();
+		cleanup();
 		exit( 0 );
 	};
 }
@@ -46,11 +52,11 @@ int main( int argc, char *argv[] )
 	DHCP *dhcpInstance = Resources::Instance()->getDHCP();
 	dhcpInstance->start();
 	dhcpInstance->inform( "00:23:14:8f:46:d4" );
-	dhcpInstance->inform( "00:23:14:8f:46:d4" );
 	while( 1 ) {
 		dhcpInstance->waitForData();
 	}
-	dhcpInstance->stop();
+
+	cleanup();
 
     return 0;
 }

@@ -75,50 +75,33 @@ void DHCP::addpacket( unsigned char* pktbuf, char *buffer, int size )
 
 void DHCP::inform( std::string hardware )
 {
-    char buffer[2048];
-    unsigned char pktbuf[2048];
-    unsigned int hw[16];
-
-    memset(buffer,0,sizeof(buffer));
-    sprintf(buffer,"\1\1%c%c",6,0);
-    addpacket(pktbuf,buffer,4);
-
-    /* xid */
-    unsigned long time_xid=time(NULL);
-    memcpy(xid,&time_xid,4);
-    addpacket(pktbuf,xid,4);
-
-    /* secs,flags,ciaddr,yiaddr,siaddr,giaddr */
-    memset(buffer,0,20);
-    addpacket(pktbuf,buffer,20);
-
+	struct dhcp_t dhcpMessage;
+	bzero( &dhcpMessage, sizeof( dhcpMessage ) );
+	dhcpMessage.opcode = 1;
+	dhcpMessage.htype = 1;
+	dhcpMessage.hlen = 6;
+	dhcpMessage.xid = htonl( time( NULL ) );;
+	dhcpMessage.magic = htonl( 0x63825363 );
+	dhcpMessage.options[ 0 ] = 53;
+	dhcpMessage.options[ 1 ] = 1;
+	dhcpMessage.options[ 2 ] = 1;
+	dhcpMessage.options[ 3 ] = 255;
     /* chaddr */
+    unsigned int hw[16];
     memset(&hw,0,sizeof(hw));
     if ( sscanf( hardware.c_str(), "%x:%x:%x:%x:%x:%x", &hw[0], &hw[1], &hw[2], &hw[3], &hw[4], &hw[5] ) != 6 ) {
 		std::cerr << "Invalid mac-format" << std::endl;
 		exit(1);
 	}
+	//memset( dhcpMessage.chaddr, 0, 16 );
+	dhcpMessage.chaddr[ 0 ] = hw[ 0 ];
+	dhcpMessage.chaddr[ 1 ] = hw[ 1 ];
+	dhcpMessage.chaddr[ 2 ] = hw[ 2 ];
+	dhcpMessage.chaddr[ 3 ] = hw[ 3 ];
+	dhcpMessage.chaddr[ 4 ] = hw[ 4 ];
+	dhcpMessage.chaddr[ 5 ] = hw[ 5 ];
 
-    sprintf(buffer,"%c%c%c%c%c%c", hw[0],hw[1],hw[2],hw[3],hw[4],hw[5] );
-    addpacket(pktbuf,buffer,16);
-
-    /* sname, file */
-    memset(buffer,0,192);
-    addpacket(pktbuf,buffer,192);
-
-    /* cookie */
-    sprintf(buffer,"%c%c%c%c",99,130,83,99);
-    addpacket(pktbuf,buffer,4);
-
-    /* dhcp-type */
-    sprintf(buffer,"%c%c%c",53,1,1);
-    addpacket(pktbuf,buffer,3);
-
-    /* end of options */
-    sprintf(buffer,"%c",255);
-    addpacket(pktbuf,buffer,1);
-
-    if ( sendto( DHCPsocket, pktbuf, offset, 0, (struct sockaddr *)&dhcp_to, sizeof(dhcp_to) ) != offset )
+    if ( sendto( DHCPsocket, &dhcpMessage, sizeof(dhcpMessage), 0, (struct sockaddr *)&dhcp_to, sizeof(dhcp_to) ) != sizeof(dhcpMessage) )
     {
 		std::cerr << "Error during sendto()" << std::endl;
         exit(1);
@@ -138,7 +121,6 @@ void DHCP::waitForData()
 	}
 
 	if ( sem_timedwait( &semaphore, &timeout ) == 0 ) {
-		std::cout << "omnomnomn!" << std::endl;
 		pthread_mutex_lock( &mutex );
 		packages = 0;
 		pthread_mutex_unlock( &mutex );
@@ -153,7 +135,6 @@ void *DHCP::work( void *context )
     timeout.tv_sec=1;
     timeout.tv_usec=0;
     fd_set read;
-	size_t bufferSize = 2048;
     while (1) {
         FD_ZERO( &read );
         FD_SET( sockfd, &read );
@@ -166,13 +147,13 @@ void *DHCP::work( void *context )
 
         if ( FD_ISSET( sockfd, &read ) ) {
 
-			unsigned char buffer[ bufferSize ];
 			struct sockaddr_in fromsock;
 			socklen_t fromlen=sizeof(fromsock);
 			int addr;
 
 			// get data from socket
-			recvfrom( sockfd, buffer, bufferSize, 0, (struct sockaddr *)&fromsock, &fromlen);
+			struct dhcp_t dhcpPackage;
+			recvfrom( sockfd, &dhcpPackage, sizeof( dhcpPackage ), 0, (struct sockaddr *)&fromsock, &fromlen);
 			addr=ntohl(fromsock.sin_addr.s_addr);
 
 			pthread_mutex_lock( &parent->mutex ); // lock our data mutex
@@ -181,14 +162,29 @@ void *DHCP::work( void *context )
 			sem_post( &parent->semaphore ); // inform main thread data is available
 
 			/** check if the xid is matching our sent out request **/
-			char xid[4];
-			char received_xid[4];
-			memcpy( received_xid, &buffer[4], 4 );
-			//if ( memcmp( xid, &buffer[4], 4 ) == 0 ) {
+			//if ( xid == ntohl( dhcpPackage.xid ) ) {
+				uint32_t recv_yiaddr = ntohl( dhcpPackage.yiaddr );
+				printf( "OP: %d\n", dhcpPackage.opcode );
+				printf( "HTYPE: %d\n", dhcpPackage.htype );
+				printf( "HLEN: %d\n", dhcpPackage.hlen );
+				printf( "HOPS: %d\n", dhcpPackage.hops );
+				printf( "XID: %x\n", htonl( dhcpPackage.xid ) );
+				printf( "SECS: %d\n", htonl( dhcpPackage.secs ) );
+				printf( "FLAGS: %d\n", htonl( dhcpPackage.flags ) );
+				printf( "CIADDR: %d.%d.%d.%d\n", ( htonl( dhcpPackage.ciaddr ) >> 24 ) & 0xFF, ( htonl( dhcpPackage.ciaddr ) >> 16 ) & 0xFF, ( htonl( dhcpPackage.ciaddr ) >>8 ) & 0xFF, ( htonl( dhcpPackage.ciaddr ) ) & 0xFF );
+				printf( "YIADDR: %d.%d.%d.%d\n", ( htonl( dhcpPackage.yiaddr ) >> 24 ) & 0xFF, ( htonl( dhcpPackage.yiaddr ) >> 16 ) & 0xFF, ( htonl( dhcpPackage.yiaddr ) >>8 ) & 0xFF, ( htonl( dhcpPackage.yiaddr ) ) & 0xFF );
+				printf( "SIADDR: %d.%d.%d.%d\n", ( htonl( dhcpPackage.siaddr ) >> 24 ) & 0xFF, ( htonl( dhcpPackage.siaddr ) >> 16 ) & 0xFF, ( htonl( dhcpPackage.siaddr ) >>8 ) & 0xFF, ( htonl( dhcpPackage.siaddr ) ) & 0xFF );
+				printf( "GIADDR: %d.%d.%d.%d\n", ( htonl( dhcpPackage.giaddr ) >> 24 ) & 0xFF, ( htonl( dhcpPackage.giaddr ) >> 16 ) & 0xFF, ( htonl( dhcpPackage.giaddr ) >>8 ) & 0xFF, ( htonl( dhcpPackage.giaddr ) ) & 0xFF );
+				printf( "SNAME: %s\n", dhcpPackage.sname );
+				printf( "FILE: %s\n", dhcpPackage.file );
+				for( int i = 0; i < 308; i++ ) {
+					printf( "Option %d: %d\n", i, dhcpPackage.options[ i ] );
+				}
 				printf( "%d.%d.%d.%d offered %d.%d.%d.%d\n",
 						( addr >> 24 ) & 0xFF, ( addr >> 16 ) & 0xFF,
 						( addr >>  8 ) & 0xFF, ( addr       ) & 0xFF,
-						buffer[16], buffer[17], buffer[18], buffer[19] );
+						( recv_yiaddr >> 24 ) & 0xFF, ( recv_yiaddr >> 16 ) & 0xFF,
+						( recv_yiaddr >>  8 ) & 0xFF, ( recv_yiaddr       ) & 0xFF );
 			//}
         }
     }
