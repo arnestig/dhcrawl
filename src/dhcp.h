@@ -49,7 +49,7 @@ struct dhcp_t
 	char sname[ 64 ];
 	char file[ 128 ];
 	uint32_t magic;
-	uint8_t options[ 512 ];
+	uint8_t options[ 308 ];
 };
 
 class DHCP

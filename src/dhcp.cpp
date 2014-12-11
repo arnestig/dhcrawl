@@ -164,21 +164,34 @@ void *DHCP::work( void *context )
 			/** check if the xid is matching our sent out request **/
 			//if ( xid == ntohl( dhcpPackage.xid ) ) {
 				uint32_t recv_yiaddr = ntohl( dhcpPackage.yiaddr );
-				printf( "OP: %d\n", dhcpPackage.opcode );
-				printf( "HTYPE: %d\n", dhcpPackage.htype );
-				printf( "HLEN: %d\n", dhcpPackage.hlen );
-				printf( "HOPS: %d\n", dhcpPackage.hops );
-				printf( "XID: %x\n", htonl( dhcpPackage.xid ) );
-				printf( "SECS: %d\n", htonl( dhcpPackage.secs ) );
-				printf( "FLAGS: %d\n", htonl( dhcpPackage.flags ) );
-				printf( "CIADDR: %d.%d.%d.%d\n", ( htonl( dhcpPackage.ciaddr ) >> 24 ) & 0xFF, ( htonl( dhcpPackage.ciaddr ) >> 16 ) & 0xFF, ( htonl( dhcpPackage.ciaddr ) >>8 ) & 0xFF, ( htonl( dhcpPackage.ciaddr ) ) & 0xFF );
-				printf( "YIADDR: %d.%d.%d.%d\n", ( htonl( dhcpPackage.yiaddr ) >> 24 ) & 0xFF, ( htonl( dhcpPackage.yiaddr ) >> 16 ) & 0xFF, ( htonl( dhcpPackage.yiaddr ) >>8 ) & 0xFF, ( htonl( dhcpPackage.yiaddr ) ) & 0xFF );
-				printf( "SIADDR: %d.%d.%d.%d\n", ( htonl( dhcpPackage.siaddr ) >> 24 ) & 0xFF, ( htonl( dhcpPackage.siaddr ) >> 16 ) & 0xFF, ( htonl( dhcpPackage.siaddr ) >>8 ) & 0xFF, ( htonl( dhcpPackage.siaddr ) ) & 0xFF );
-				printf( "GIADDR: %d.%d.%d.%d\n", ( htonl( dhcpPackage.giaddr ) >> 24 ) & 0xFF, ( htonl( dhcpPackage.giaddr ) >> 16 ) & 0xFF, ( htonl( dhcpPackage.giaddr ) >>8 ) & 0xFF, ( htonl( dhcpPackage.giaddr ) ) & 0xFF );
-				printf( "SNAME: %s\n", dhcpPackage.sname );
-				printf( "FILE: %s\n", dhcpPackage.file );
-				for( int i = 0; i < 308; i++ ) {
-					printf( "Option %d: %d\n", i, dhcpPackage.options[ i ] );
+				printf( "    OP: %d\n", dhcpPackage.opcode );
+				printf( " HTYPE: %d\n", dhcpPackage.htype );
+				printf( "  HLEN: %d\n", dhcpPackage.hlen );
+				printf( "  HOPS: %d\n", dhcpPackage.hops );
+				printf( "   XID: %x\n", htonl( dhcpPackage.xid ) );
+				printf( "  SECS: %d\n", htonl( dhcpPackage.secs ) );
+				printf( " FLAGS: %d\n", htonl( dhcpPackage.flags ) );
+				printf( "CIADDR: %d.%d.%d.%d\n", ( htonl( dhcpPackage.ciaddr ) >> 24 ) & 0xFF, ( htonl( dhcpPackage.ciaddr ) >> 16 ) & 0xFF, ( htonl( dhcpPackage.ciaddr ) >> 8 ) & 0xFF, ( htonl( dhcpPackage.ciaddr ) ) & 0xFF );
+				printf( "YIADDR: %d.%d.%d.%d\n", ( htonl( dhcpPackage.yiaddr ) >> 24 ) & 0xFF, ( htonl( dhcpPackage.yiaddr ) >> 16 ) & 0xFF, ( htonl( dhcpPackage.yiaddr ) >> 8 ) & 0xFF, ( htonl( dhcpPackage.yiaddr ) ) & 0xFF );
+				printf( "SIADDR: %d.%d.%d.%d\n", ( htonl( dhcpPackage.siaddr ) >> 24 ) & 0xFF, ( htonl( dhcpPackage.siaddr ) >> 16 ) & 0xFF, ( htonl( dhcpPackage.siaddr ) >> 8 ) & 0xFF, ( htonl( dhcpPackage.siaddr ) ) & 0xFF );
+				printf( "GIADDR: %d.%d.%d.%d\n", ( htonl( dhcpPackage.giaddr ) >> 24 ) & 0xFF, ( htonl( dhcpPackage.giaddr ) >> 16 ) & 0xFF, ( htonl( dhcpPackage.giaddr ) >> 8 ) & 0xFF, ( htonl( dhcpPackage.giaddr ) ) & 0xFF );
+				printf( "CHADDR: %.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n", dhcpPackage.chaddr[ 0 ], dhcpPackage.chaddr[ 1 ], dhcpPackage.chaddr[ 2 ], dhcpPackage.chaddr[ 3 ], dhcpPackage.chaddr[ 4 ], dhcpPackage.chaddr[ 5 ] );
+				printf( " SNAME: %s\n", dhcpPackage.sname );
+				printf( "  FILE: %s\n", dhcpPackage.file );
+				int i = 0;
+				uint8_t option = 0;
+				while ( option != 255 ) {
+					option = dhcpPackage.options[ i ];
+					uint8_t length = dhcpPackage.options[ ++i ];
+					printf( "Option: %d ( %d ): ", option, length );
+					for ( uint8_t x = 0; x < length; x++ ) {
+						printf( "%d", dhcpPackage.options[ ++i ] );
+					}
+					printf( "\n" );
+
+					if ( ++i >= 308 ) {
+						break;
+					};
 				}
 				printf( "%d.%d.%d.%d offered %d.%d.%d.%d\n",
 						( addr >> 24 ) & 0xFF, ( addr >> 16 ) & 0xFF,
