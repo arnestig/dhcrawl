@@ -23,10 +23,8 @@
 #include "dhcp.h"
 
 DHCP::DHCP()
-	:	offset( 0 ),
-		DHCPsocket( 0 )
+	:	DHCPsocket( 0 )
 {
-	memset( xid, 0, 4 );
     dhcp_to.sin_family=AF_INET;
     dhcp_to.sin_addr.s_addr=INADDR_BROADCAST;
     dhcp_to.sin_port=htons(67);
@@ -65,12 +63,6 @@ void DHCP::start()
 
 void DHCP::stop()
 {
-}
-
-void DHCP::addpacket( unsigned char* pktbuf, char *buffer, int size )
-{
-    memcpy( pktbuf+offset, buffer, size );
-    offset += size;
 }
 
 void DHCP::inform( std::string hardware )

@@ -66,16 +66,12 @@ class DHCP
 		int DHCPsocket;
 
 	private:
-		void addpacket( unsigned char* pktbuf, char *buffer, int size );
-
 		int packages;
     	struct sockaddr_in dhcp_to;
     	struct sockaddr_in name;
 		sem_t semaphore;
 		pthread_mutex_t mutex;
 		pthread_t worker;
-		int offset;
-		char xid[4];
 		static void *work( void *context );
 };
 
