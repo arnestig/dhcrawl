@@ -19,29 +19,24 @@
     along with dhcrawl.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#ifndef __RESOURCES_H__
-#define __RESOURCES_H__
+#ifndef __STATE_H__
+#define __STATE_H__
 
-#include "dhcp.h"
-#include "state.h"
+#include <pthread.h>
 
-class Resources
+class State
 {
-    public:
-        static Resources* Instance();
-        static void DestroyInstance();
+	public:
+		State();
+		~State();
 
-        DHCP* getDHCP() const;
-        State* getState() const;
+		unsigned int getFilter();
+		void setFilter( unsigned int filter );
 
-    private:
-        static Resources* instance;
-        Resources();
-        ~Resources();
-        Resources( Resources const& ) {};
+	private:
 
-        DHCP *dhcp;
-        State *state;
+		unsigned int filter;
+		pthread_mutex_t mutex;
 };
 
 #endif

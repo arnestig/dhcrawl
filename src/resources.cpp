@@ -24,14 +24,17 @@
 Resources* Resources::instance = NULL;
 
 Resources::Resources()
-    :   dhcp( NULL )
+    :   dhcp( NULL ),
+		state( NULL )
 {
     dhcp = new DHCP();
+	state = new State();
 }
 
 Resources::~Resources()
 {
 	delete dhcp;
+	delete state;
 }
 
 void Resources::DestroyInstance()
@@ -53,3 +56,7 @@ DHCP* Resources::getDHCP() const
     return dhcp;
 }
 
+State* Resources::getState() const
+{
+    return state;
+}

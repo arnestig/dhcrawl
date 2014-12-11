@@ -62,12 +62,10 @@ class DHCP
 		void stop();
 		bool waitForData( struct dhcp_t &package );
 		void inform( std::string hardware );
-		void setFilter( unsigned int filter );
 
 	private:
 		static void *work( void *context );
 
-		int filter;
 		int DHCPsocket;
 		std::vector< struct dhcp_t > packages;
     	struct sockaddr_in dhcp_to;

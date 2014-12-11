@@ -22,10 +22,10 @@
 #include <pthread.h>
 #include "dhcp.h"
 #include "parser.h"
+#include "resources.h"
 
 DHCP::DHCP()
-	:	DHCPsocket( 0 ),
-		filter( 0 )
+	:	DHCPsocket( 0 )
 {
     dhcp_to.sin_family=AF_INET;
     dhcp_to.sin_addr.s_addr=INADDR_BROADCAST;
@@ -65,11 +65,6 @@ void DHCP::start()
 
 void DHCP::stop()
 {
-}
-
-void DHCP::setFilter( unsigned int filter )
-{
-	this->filter = filter;
 }
 
 void DHCP::inform( std::string hardware )
@@ -159,12 +154,20 @@ void *DHCP::work( void *context )
 
 			// check which filter is active
 			bool packageAdded = false;
-			switch ( parent->filter ) {
-				case 1: { // PROBE so we only want to see DHCPOFFER messages
+			switch ( Resources::Instance()->getState()->getFilter() ) {
+				case 1: { // PROBE - so we only want to see DHCPOFFER messages
 					int DHCPtype = Parser::getDHCPMessageType( dhcpPackage.options );
 					/** check if the xid is matching our sent out request **/
 					//if ( xid == ntohl( dhcpPackage.xid ) ) {
 					if ( DHCPtype == 2 ) {
+						parent->packages.push_back( dhcpPackage );
+						packageAdded = true;
+					}
+					break;
+				}
+				case 2: { // MONITOR - we look at all DHCPREQUEST messages
+					int DHCPtype = Parser::getDHCPMessageType( dhcpPackage.options );
+					if ( DHCPtype == 3 ) {
 						parent->packages.push_back( dhcpPackage );
 						packageAdded = true;
 					}
