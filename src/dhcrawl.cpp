@@ -47,8 +47,8 @@ int main( int argc, char *argv[] )
 	DHCP *dhcpServer = new DHCP();
 	dhcpServer->start();
 	dhcpServer->inform( "00:23:14:8f:46:d4" );
+	dhcpServer->inform( "00:23:14:8f:46:d4" );
 	while( 1 ) {
-		usleep( 40000 ); // 40 millisecond sleep
 		dhcpServer->waitForData();
 	}
 	dhcpServer->stop();

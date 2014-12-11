@@ -35,12 +35,14 @@ DHCP::DHCP()
     name.sin_port = htons(68);
     name.sin_addr.s_addr = INADDR_ANY;
 
-	
-	pthread_mutex_init( &dhcp_read_mutex, NULL );
+	sem_init( &semaphore, 0, 0 );	
+	pthread_mutex_init( &mutex, NULL );
 }
 
 DHCP::~DHCP()
 {
+	sem_destroy( &semaphore );
+	pthread_mutex_destroy( &mutex );
 }
 
 void DHCP::start()
@@ -125,11 +127,21 @@ void DHCP::inform( std::string hardware )
 
 void DHCP::waitForData()
 {
-	if ( packages > 0 ) {
-		pthread_mutex_lock( &dhcp_read_mutex );
+	// setup a timeout so we can wait maximum of 40ms
+	struct timespec timeout;
+	clock_gettime(CLOCK_REALTIME, &timeout);
+	if ( timeout.tv_nsec + 40000000 > 999999999 ) {
+		timeout.tv_sec += 1;
+		timeout.tv_nsec += 40000000 - 999999999;
+	} else {
+		timeout.tv_nsec += 40000000;
+	}
+
+	if ( sem_timedwait( &semaphore, &timeout ) == 0 ) {
 		std::cout << "omnomnomn!" << std::endl;
+		pthread_mutex_lock( &mutex );
 		packages = 0;
-		pthread_mutex_unlock( &dhcp_read_mutex );
+		pthread_mutex_unlock( &mutex );
 	}
 }
 
@@ -159,12 +171,14 @@ void *DHCP::work( void *context )
 			socklen_t fromlen=sizeof(fromsock);
 			int addr;
 
+			// get data from socket
 			recvfrom( sockfd, buffer, bufferSize, 0, (struct sockaddr *)&fromsock, &fromlen);
 			addr=ntohl(fromsock.sin_addr.s_addr);
 
-			pthread_mutex_lock( &parent->dhcp_read_mutex );
+			pthread_mutex_lock( &parent->mutex ); // lock our data mutex
 			parent->packages++;
-			pthread_mutex_unlock( &parent->dhcp_read_mutex );
+			pthread_mutex_unlock( &parent->mutex ); // unlock our data mutex
+			sem_post( &parent->semaphore ); // inform main thread data is available
 
 			/** check if the xid is matching our sent out request **/
 			char xid[4];

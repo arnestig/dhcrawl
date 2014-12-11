@@ -30,6 +30,7 @@
 #include <string.h>
 #include <sys/select.h>
 #include <sys/socket.h>
+#include <semaphore.h>
 
 class DHCP
 {
@@ -50,7 +51,8 @@ class DHCP
 		int packages;
     	struct sockaddr_in dhcp_to;
     	struct sockaddr_in name;
-		pthread_mutex_t dhcp_read_mutex;
+		sem_t semaphore;
+		pthread_mutex_t mutex;
 		pthread_t worker;
 		int offset;
 		char xid[4];
