@@ -60,19 +60,21 @@ class DHCP
 
 		void start();
 		void stop();
-		void waitForData();
+		bool waitForData( struct dhcp_t &package );
 		void inform( std::string hardware );
-
-		int DHCPsocket;
+		void setFilter( unsigned int filter );
 
 	private:
-		int packages;
+		static void *work( void *context );
+
+		int filter;
+		int DHCPsocket;
+		std::vector< struct dhcp_t > packages;
     	struct sockaddr_in dhcp_to;
     	struct sockaddr_in name;
 		sem_t semaphore;
 		pthread_mutex_t mutex;
 		pthread_t worker;
-		static void *work( void *context );
 };
 
 #endif

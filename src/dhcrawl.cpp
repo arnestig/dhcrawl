@@ -25,6 +25,7 @@
 #include <signal.h>
 
 #include "resources.h"
+#include "parser.h"
 
 void cleanup()
 {
@@ -51,9 +52,14 @@ int main( int argc, char *argv[] )
 	}
 	DHCP *dhcpInstance = Resources::Instance()->getDHCP();
 	dhcpInstance->start();
+	dhcpInstance->setFilter( 1 ); // Filter PROBE, will be changed to an enum later on
 	dhcpInstance->inform( "00:23:14:8f:46:d4" );
 	while( 1 ) {
-		dhcpInstance->waitForData();
+		struct dhcp_t dhcpPackage;
+		if ( dhcpInstance->waitForData( dhcpPackage ) == true ) {
+			// we received a valid DHCP package, now we work on it
+			Parser::printDHCPMessage( dhcpPackage );
+		}
 	}
 
 	cleanup();

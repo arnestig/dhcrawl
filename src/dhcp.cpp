@@ -21,9 +21,11 @@
 
 #include <pthread.h>
 #include "dhcp.h"
+#include "parser.h"
 
 DHCP::DHCP()
-	:	DHCPsocket( 0 )
+	:	DHCPsocket( 0 ),
+		filter( 0 )
 {
     dhcp_to.sin_family=AF_INET;
     dhcp_to.sin_addr.s_addr=INADDR_BROADCAST;
@@ -65,6 +67,11 @@ void DHCP::stop()
 {
 }
 
+void DHCP::setFilter( unsigned int filter )
+{
+	this->filter = filter;
+}
+
 void DHCP::inform( std::string hardware )
 {
 	struct dhcp_t dhcpMessage;
@@ -85,7 +92,6 @@ void DHCP::inform( std::string hardware )
 		std::cerr << "Invalid mac-format" << std::endl;
 		exit(1);
 	}
-	//memset( dhcpMessage.chaddr, 0, 16 );
 	dhcpMessage.chaddr[ 0 ] = hw[ 0 ];
 	dhcpMessage.chaddr[ 1 ] = hw[ 1 ];
 	dhcpMessage.chaddr[ 2 ] = hw[ 2 ];
@@ -100,7 +106,7 @@ void DHCP::inform( std::string hardware )
     }
 }
 
-void DHCP::waitForData()
+bool DHCP::waitForData( struct dhcp_t &package )
 {
 	// setup a timeout so we can wait maximum of 40ms
 	struct timespec timeout;
@@ -114,9 +120,12 @@ void DHCP::waitForData()
 
 	if ( sem_timedwait( &semaphore, &timeout ) == 0 ) {
 		pthread_mutex_lock( &mutex );
-		packages = 0;
+		package = packages.back();
+		packages.pop_back();
 		pthread_mutex_unlock( &mutex );
+		return true;
 	}
+	return false;
 }
 
 void *DHCP::work( void *context )
@@ -148,49 +157,30 @@ void *DHCP::work( void *context )
 			recvfrom( sockfd, &dhcpPackage, sizeof( dhcpPackage ), 0, (struct sockaddr *)&fromsock, &fromlen);
 			addr=ntohl(fromsock.sin_addr.s_addr);
 
-			pthread_mutex_lock( &parent->mutex ); // lock our data mutex
-			parent->packages++;
-			pthread_mutex_unlock( &parent->mutex ); // unlock our data mutex
-			sem_post( &parent->semaphore ); // inform main thread data is available
-
-			/** check if the xid is matching our sent out request **/
-			//if ( xid == ntohl( dhcpPackage.xid ) ) {
-				uint32_t recv_yiaddr = ntohl( dhcpPackage.yiaddr );
-				printf( "    OP: %d\n", dhcpPackage.opcode );
-				printf( " HTYPE: %d\n", dhcpPackage.htype );
-				printf( "  HLEN: %d\n", dhcpPackage.hlen );
-				printf( "  HOPS: %d\n", dhcpPackage.hops );
-				printf( "   XID: %x\n", htonl( dhcpPackage.xid ) );
-				printf( "  SECS: %d\n", htonl( dhcpPackage.secs ) );
-				printf( " FLAGS: %d\n", htonl( dhcpPackage.flags ) );
-				printf( "CIADDR: %d.%d.%d.%d\n", ( htonl( dhcpPackage.ciaddr ) >> 24 ) & 0xFF, ( htonl( dhcpPackage.ciaddr ) >> 16 ) & 0xFF, ( htonl( dhcpPackage.ciaddr ) >> 8 ) & 0xFF, ( htonl( dhcpPackage.ciaddr ) ) & 0xFF );
-				printf( "YIADDR: %d.%d.%d.%d\n", ( htonl( dhcpPackage.yiaddr ) >> 24 ) & 0xFF, ( htonl( dhcpPackage.yiaddr ) >> 16 ) & 0xFF, ( htonl( dhcpPackage.yiaddr ) >> 8 ) & 0xFF, ( htonl( dhcpPackage.yiaddr ) ) & 0xFF );
-				printf( "SIADDR: %d.%d.%d.%d\n", ( htonl( dhcpPackage.siaddr ) >> 24 ) & 0xFF, ( htonl( dhcpPackage.siaddr ) >> 16 ) & 0xFF, ( htonl( dhcpPackage.siaddr ) >> 8 ) & 0xFF, ( htonl( dhcpPackage.siaddr ) ) & 0xFF );
-				printf( "GIADDR: %d.%d.%d.%d\n", ( htonl( dhcpPackage.giaddr ) >> 24 ) & 0xFF, ( htonl( dhcpPackage.giaddr ) >> 16 ) & 0xFF, ( htonl( dhcpPackage.giaddr ) >> 8 ) & 0xFF, ( htonl( dhcpPackage.giaddr ) ) & 0xFF );
-				printf( "CHADDR: %.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n", dhcpPackage.chaddr[ 0 ], dhcpPackage.chaddr[ 1 ], dhcpPackage.chaddr[ 2 ], dhcpPackage.chaddr[ 3 ], dhcpPackage.chaddr[ 4 ], dhcpPackage.chaddr[ 5 ] );
-				printf( " SNAME: %s\n", dhcpPackage.sname );
-				printf( "  FILE: %s\n", dhcpPackage.file );
-				int i = 0;
-				uint8_t option = 0;
-				while ( option != 255 ) {
-					option = dhcpPackage.options[ i ];
-					uint8_t length = dhcpPackage.options[ ++i ];
-					printf( "Option: %d ( %d ): ", option, length );
-					for ( uint8_t x = 0; x < length; x++ ) {
-						printf( "%d", dhcpPackage.options[ ++i ] );
+			// check which filter is active
+			bool packageAdded = false;
+			switch ( parent->filter ) {
+				case 1: { // PROBE so we only want to see DHCPOFFER messages
+					int DHCPtype = Parser::getDHCPMessageType( dhcpPackage.options );
+					/** check if the xid is matching our sent out request **/
+					//if ( xid == ntohl( dhcpPackage.xid ) ) {
+					if ( DHCPtype == 2 ) {
+						parent->packages.push_back( dhcpPackage );
+						packageAdded = true;
 					}
-					printf( "\n" );
-
-					if ( ++i >= 308 ) {
-						break;
-					};
+					break;
 				}
-				printf( "%d.%d.%d.%d offered %d.%d.%d.%d\n",
-						( addr >> 24 ) & 0xFF, ( addr >> 16 ) & 0xFF,
-						( addr >>  8 ) & 0xFF, ( addr       ) & 0xFF,
-						( recv_yiaddr >> 24 ) & 0xFF, ( recv_yiaddr >> 16 ) & 0xFF,
-						( recv_yiaddr >>  8 ) & 0xFF, ( recv_yiaddr       ) & 0xFF );
-			//}
+
+				default: // default or 0, not expected or valid DHCP message type
+				case 0:
+					break;
+			}
+
+			if ( packageAdded == true ) {
+				pthread_mutex_lock( &parent->mutex ); // lock our data mutex
+				pthread_mutex_unlock( &parent->mutex ); // unlock our data mutex
+				sem_post( &parent->semaphore ); // inform main thread data is available
+			}
         }
     }
 }
