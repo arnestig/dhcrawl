@@ -54,7 +54,7 @@ int main( int argc, char *argv[] )
 	dhcpInstance->start();
 	//Resources::Instance()->getState()->setFilter( 1 ); // Filter PROBE, will be changed to an enum later on
 	Resources::Instance()->getState()->setFilter( 2 ); // Filter MONITOR, will be changed to an enum later on
-	dhcpInstance->inform( "00:23:14:8f:46:d4" );
+	dhcpInstance->discover( "00:23:14:8f:46:d4" );
 	while( 1 ) {
 		struct dhcp_t dhcpPackage;
 		if ( dhcpInstance->waitForData( dhcpPackage ) == true ) {

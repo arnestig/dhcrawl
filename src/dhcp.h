@@ -61,15 +61,16 @@ class DHCP
 		void start();
 		void stop();
 		bool waitForData( struct dhcp_t &package );
-		void inform( std::string hardware );
+		void discover( std::string hardware );
 
 	private:
 		static void *work( void *context );
 
-		int DHCPsocket;
+		int DHCPsocket[ 2 ];
 		std::vector< struct dhcp_t > packages;
     	struct sockaddr_in dhcp_to;
-    	struct sockaddr_in name;
+    	struct sockaddr_in name67;
+    	struct sockaddr_in name68;
 		sem_t semaphore;
 		pthread_mutex_t mutex;
 		pthread_t worker;
