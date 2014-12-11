@@ -47,6 +47,7 @@ class DHCP
 	private:
 		void addpacket( unsigned char* pktbuf, char *buffer, int size );
 
+		int packages;
     	struct sockaddr_in dhcp_to;
     	struct sockaddr_in name;
 		pthread_mutex_t dhcp_read_mutex;

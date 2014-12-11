@@ -36,7 +36,7 @@ DHCP::DHCP()
     name.sin_addr.s_addr = INADDR_ANY;
 
 	
-	//pthread_mutex_init( &myMutex, NULL );
+	pthread_mutex_init( &dhcp_read_mutex, NULL );
 }
 
 DHCP::~DHCP()
@@ -59,7 +59,6 @@ void DHCP::start()
 	pthread_create( &worker, NULL, work, this );
 	pthread_detach( worker );
 
-	pthread_mutex_init( &dhcp_read_mutex, NULL );
 }
 
 void DHCP::stop()
@@ -126,10 +125,12 @@ void DHCP::inform( std::string hardware )
 
 void DHCP::waitForData()
 {
-	std::cout << "waitForData++" << std::endl;
-	pthread_mutex_lock( &dhcp_read_mutex );
-	pthread_mutex_unlock( &dhcp_read_mutex );
-	std::cout << "waitForData--" << std::endl;
+	if ( packages > 0 ) {
+		pthread_mutex_lock( &dhcp_read_mutex );
+		std::cout << "omnomnomn!" << std::endl;
+		packages = 0;
+		pthread_mutex_unlock( &dhcp_read_mutex );
+	}
 }
 
 void *DHCP::work( void *context )
@@ -142,8 +143,6 @@ void *DHCP::work( void *context )
     fd_set read;
 	size_t bufferSize = 2048;
     while (1) {
-		pthread_mutex_lock( &parent->dhcp_read_mutex );
-		std::cout << "mutex locked" << std::endl;
         FD_ZERO( &read );
         FD_SET( sockfd, &read );
 
@@ -163,7 +162,10 @@ void *DHCP::work( void *context )
 			recvfrom( sockfd, buffer, bufferSize, 0, (struct sockaddr *)&fromsock, &fromlen);
 			addr=ntohl(fromsock.sin_addr.s_addr);
 
-			std::cout << "mutex unlocked" << std::endl;
+			pthread_mutex_lock( &parent->dhcp_read_mutex );
+			parent->packages++;
+			pthread_mutex_unlock( &parent->dhcp_read_mutex );
+
 			/** check if the xid is matching our sent out request **/
 			char xid[4];
 			char received_xid[4];
@@ -175,6 +177,5 @@ void *DHCP::work( void *context )
 						buffer[16], buffer[17], buffer[18], buffer[19] );
 			//}
         }
-		pthread_mutex_unlock( &parent->dhcp_read_mutex );
     }
 }
