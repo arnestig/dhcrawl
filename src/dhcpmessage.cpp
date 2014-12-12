@@ -22,10 +22,19 @@
 #include <pthread.h>
 #include "dhcpmessage.h"
 
-DHCPMessage::DHCPMessage( struct dhcp_t package )
-	:	package( package ),
+DHCPMessage::DHCPMessage( struct dhcp_t copyPackage )
+	:	package( copyPackage ),
 		messageType( 0 )
 {
+	// fix all network to host ordering here first so we don't have to worry about it
+	package.xid = ntohl( package.xid );
+	package.secs = ntohl( package.secs );
+	package.flags = ntohl( package.flags );
+	package.ciaddr = ntohl( package.ciaddr );
+	package.yiaddr = ntohl( package.yiaddr );
+	package.siaddr = ntohl( package.siaddr );
+	package.giaddr = ntohl( package.giaddr );
+
 	// parse some information about the dhcp package
 	int i = 0;
 	uint8_t option = 0;
@@ -58,18 +67,17 @@ uint8_t DHCPMessage::getMessageType()
 
 void DHCPMessage::printMessage()
 {
-	uint32_t recv_yiaddr = ntohl( package.yiaddr );
 	printf( "    OP: %d\n", package.opcode );
 	printf( " HTYPE: %d\n", package.htype );
 	printf( "  HLEN: %d\n", package.hlen );
 	printf( "  HOPS: %d\n", package.hops );
-	printf( "   XID: %x\n", htonl( package.xid ) );
-	printf( "  SECS: %d\n", htonl( package.secs ) );
-	printf( " FLAGS: %d\n", htonl( package.flags ) );
-	printf( "CIADDR: %d.%d.%d.%d\n", ( htonl( package.ciaddr ) >> 24 ) & 0xFF, ( htonl( package.ciaddr ) >> 16 ) & 0xFF, ( htonl( package.ciaddr ) >> 8 ) & 0xFF, ( htonl( package.ciaddr ) ) & 0xFF );
-	printf( "YIADDR: %d.%d.%d.%d\n", ( htonl( package.yiaddr ) >> 24 ) & 0xFF, ( htonl( package.yiaddr ) >> 16 ) & 0xFF, ( htonl( package.yiaddr ) >> 8 ) & 0xFF, ( htonl( package.yiaddr ) ) & 0xFF );
-	printf( "SIADDR: %d.%d.%d.%d\n", ( htonl( package.siaddr ) >> 24 ) & 0xFF, ( htonl( package.siaddr ) >> 16 ) & 0xFF, ( htonl( package.siaddr ) >> 8 ) & 0xFF, ( htonl( package.siaddr ) ) & 0xFF );
-	printf( "GIADDR: %d.%d.%d.%d\n", ( htonl( package.giaddr ) >> 24 ) & 0xFF, ( htonl( package.giaddr ) >> 16 ) & 0xFF, ( htonl( package.giaddr ) >> 8 ) & 0xFF, ( htonl( package.giaddr ) ) & 0xFF );
+	printf( "   XID: %x\n", package.xid );
+	printf( "  SECS: %d\n", package.secs );
+	printf( " FLAGS: %d\n", package.flags );
+	printf( "CIADDR: %d.%d.%d.%d\n", ( package.ciaddr >> 24 ) & 0xFF, ( package.ciaddr >> 16 ) & 0xFF, ( package.ciaddr >> 8 ) & 0xFF, ( package.ciaddr ) & 0xFF );
+	printf( "YIADDR: %d.%d.%d.%d\n", ( package.yiaddr >> 24 ) & 0xFF, ( package.yiaddr >> 16 ) & 0xFF, ( package.yiaddr >> 8 ) & 0xFF, ( package.yiaddr ) & 0xFF );
+	printf( "SIADDR: %d.%d.%d.%d\n", ( package.siaddr >> 24 ) & 0xFF, ( package.siaddr >> 16 ) & 0xFF, ( package.siaddr >> 8 ) & 0xFF, ( package.siaddr ) & 0xFF );
+	printf( "GIADDR: %d.%d.%d.%d\n", ( package.giaddr >> 24 ) & 0xFF, ( package.giaddr >> 16 ) & 0xFF, ( package.giaddr >> 8 ) & 0xFF, ( package.giaddr ) & 0xFF );
 	printf( "CHADDR: %.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n", package.chaddr[ 0 ], package.chaddr[ 1 ], package.chaddr[ 2 ], package.chaddr[ 3 ], package.chaddr[ 4 ], package.chaddr[ 5 ] );
 	printf( " SNAME: %s\n", package.sname );
 	printf( "  FILE: %s\n", package.file );

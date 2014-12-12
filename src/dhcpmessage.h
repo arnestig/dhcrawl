@@ -67,7 +67,7 @@ class DHCPMessage
 {
 
 	public:
-		DHCPMessage( struct dhcp_t package );
+		DHCPMessage( struct dhcp_t copyPackage );
 		~DHCPMessage();
 
 		void printMessage();
