@@ -1,5 +1,5 @@
 /**
-    Copyright (C) 2014 dhcrawl - Probe DHCPInterface servers to see what offers are sent
+    Copyright (C) 2014 dhcrawl - Probe DHCPMessage servers to see what offers are sent
 
     Written by Tobias Eliasson <arnestig@gmail.com>.
 
@@ -19,8 +19,8 @@
     along with dhcrawl.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#ifndef __DHCPINTERFACE_H__
-#define __DHCPINTERFACE_H__
+#ifndef __DHCPMESSAGE_H__
+#define __DHCPMESSAGE_H__
 
 #include <vector>
 #include <iostream>
@@ -32,30 +32,50 @@
 #include <sys/socket.h>
 #include <semaphore.h>
 
-#include "dhcpmessage.h"
-
-class DHCPInterface
+struct dhcp_t
 {
-	public:
-		DHCPInterface();
-		~DHCPInterface();
+	uint8_t opcode;
+	uint8_t htype;
+	uint8_t hlen;
+	uint8_t hops;
+	uint32_t xid;
+	uint16_t secs;
+	uint16_t flags;
+	uint32_t ciaddr;
+	uint32_t yiaddr;
+	uint32_t siaddr;
+	uint32_t giaddr;
+	uint8_t chaddr[ 16 ];
+	char sname[ 64 ];
+	char file[ 128 ];
+	uint32_t magic;
+	uint8_t options[ 308 ];
+};
 
-		void start();
-		void stop();
-		DHCPMessage* waitForMessage();
-		void discover( std::string hardware );
+enum MessageType {
+	DHCPDISCOVER = 1,
+	DHCPOFFER = 2,
+	DHCPREQUEST = 3,
+	DHCPDECLINE = 4,
+	DHCPACK = 5,
+	DHCPNAK = 6,
+	DHCPRELEASE = 7,
+	DHCPINFORM = 8
+};
+
+class DHCPMessage
+{
+
+	public:
+		DHCPMessage( struct dhcp_t package );
+		~DHCPMessage();
+
+		uint8_t getMessageType();
 
 	private:
-		static void *work( void *context );
-
-		int DHCPInterfaceSocket[ 2 ];
-		std::vector< DHCPMessage* > messages;
-    	struct sockaddr_in dhcp_to;
-    	struct sockaddr_in name67;
-    	struct sockaddr_in name68;
-		sem_t semaphore;
-		pthread_mutex_t mutex;
-		pthread_t worker;
+		struct dhcp_t package;
+		uint8_t messageType;
+		
 };
 
 #endif

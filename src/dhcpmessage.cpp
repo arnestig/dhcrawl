@@ -19,43 +19,40 @@
     along with dhcrawl.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#ifndef __DHCPINTERFACE_H__
-#define __DHCPINTERFACE_H__
-
-#include <vector>
-#include <iostream>
-#include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/select.h>
-#include <sys/socket.h>
-#include <semaphore.h>
-
+#include <pthread.h>
 #include "dhcpmessage.h"
 
-class DHCPInterface
+DHCPMessage::DHCPMessage( struct dhcp_t package )
+	:	package( package ),
+		messageType( 0 )
 {
-	public:
-		DHCPInterface();
-		~DHCPInterface();
+	// parse some information about the dhcp package
+	int i = 0;
+	uint8_t option = 0;
+	while ( option != 255 ) {
+		option = package.options[ i ];
+		uint8_t length = package.options[ ++i ];
 
-		void start();
-		void stop();
-		DHCPMessage* waitForMessage();
-		void discover( std::string hardware );
+		switch( option ) {
+			case 53: // DHCP Message Type
+				messageType = package.options[ ++i ];
+				break;
+		}
 
-	private:
-		static void *work( void *context );
+		i += length;
 
-		int DHCPInterfaceSocket[ 2 ];
-		std::vector< DHCPMessage* > messages;
-    	struct sockaddr_in dhcp_to;
-    	struct sockaddr_in name67;
-    	struct sockaddr_in name68;
-		sem_t semaphore;
-		pthread_mutex_t mutex;
-		pthread_t worker;
-};
+		if ( ++i >= 308 ) {
+			break;
+		};
+	}
+}
 
-#endif
+DHCPMessage::~DHCPMessage()
+{
+}
+
+uint8_t DHCPMessage::getMessageType()
+{
+	return messageType;
+}
+

@@ -42,26 +42,6 @@ namespace Parser {
 		}
 	};
 
-	inline uint8_t getDHCPMessageType( uint8_t options[] ) {
-		int i = 0;
-		uint8_t option = 0;
-		while ( option != 255 ) {
-			option = options[ i ];
-			uint8_t length = options[ ++i ];
-			i += length;
-
-			// is option DHCP Message Type (53) ?
-			if ( option == 53 ) {
-				return options[ i ];
-			}
-
-			if ( ++i >= 308 ) {
-				break;
-			};
-		}
-		return 0; // No message type found
-	};
-
 	inline void printDHCPMessage( struct dhcp_t dhcpPackage ) {
 		uint32_t recv_yiaddr = ntohl( dhcpPackage.yiaddr );
 		printf( "    OP: %d\n", dhcpPackage.opcode );

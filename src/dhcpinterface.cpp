@@ -83,19 +83,19 @@ void DHCPInterface::stop()
 
 void DHCPInterface::discover( std::string hardware )
 {
-	struct dhcp_t dhcpMessage;
-	bzero( &dhcpMessage, sizeof( dhcpMessage ) );
-	dhcpMessage.opcode = 1;
-	dhcpMessage.htype = 1;
-	dhcpMessage.hlen = 6;
+	struct dhcp_t dhcpPackage;
+	bzero( &dhcpPackage, sizeof( dhcpPackage ) );
+	dhcpPackage.opcode = 1;
+	dhcpPackage.htype = 1;
+	dhcpPackage.hlen = 6;
 	uint32_t xid = time( NULL );
 	Resources::Instance()->getState()->setXid( xid );
-	dhcpMessage.xid = htonl( xid );
-	dhcpMessage.magic = htonl( 0x63825363 );
-	dhcpMessage.options[ 0 ] = 53;
-	dhcpMessage.options[ 1 ] = 1;
-	dhcpMessage.options[ 2 ] = 1;
-	dhcpMessage.options[ 3 ] = 255;
+	dhcpPackage.xid = htonl( xid );
+	dhcpPackage.magic = htonl( 0x63825363 );
+	dhcpPackage.options[ 0 ] = 53;
+	dhcpPackage.options[ 1 ] = 1;
+	dhcpPackage.options[ 2 ] = 1;
+	dhcpPackage.options[ 3 ] = 255;
     /* chaddr */
     unsigned int hw[16];
     memset(&hw,0,sizeof(hw));
@@ -103,21 +103,21 @@ void DHCPInterface::discover( std::string hardware )
 		std::cerr << "Invalid mac-format" << std::endl;
 		exit(1);
 	}
-	dhcpMessage.chaddr[ 0 ] = hw[ 0 ];
-	dhcpMessage.chaddr[ 1 ] = hw[ 1 ];
-	dhcpMessage.chaddr[ 2 ] = hw[ 2 ];
-	dhcpMessage.chaddr[ 3 ] = hw[ 3 ];
-	dhcpMessage.chaddr[ 4 ] = hw[ 4 ];
-	dhcpMessage.chaddr[ 5 ] = hw[ 5 ];
+	dhcpPackage.chaddr[ 0 ] = hw[ 0 ];
+	dhcpPackage.chaddr[ 1 ] = hw[ 1 ];
+	dhcpPackage.chaddr[ 2 ] = hw[ 2 ];
+	dhcpPackage.chaddr[ 3 ] = hw[ 3 ];
+	dhcpPackage.chaddr[ 4 ] = hw[ 4 ];
+	dhcpPackage.chaddr[ 5 ] = hw[ 5 ];
 
-    if ( sendto( DHCPInterfaceSocket[ 1 ], &dhcpMessage, sizeof(dhcpMessage), 0, (struct sockaddr *)&dhcp_to, sizeof(dhcp_to) ) != sizeof(dhcpMessage) )
+    if ( sendto( DHCPInterfaceSocket[ 1 ], &dhcpPackage, sizeof(dhcpPackage), 0, (struct sockaddr *)&dhcp_to, sizeof(dhcp_to) ) != sizeof(dhcpPackage) )
     {
 		std::cerr << "Error during sendto()" << std::endl;
         exit(1);
     }
 }
 
-bool DHCPInterface::waitForData( struct dhcp_t &package )
+DHCPMessage* DHCPInterface::waitForMessage()
 {
 	// setup a timeout so we can wait maximum of 40ms
 	struct timespec timeout;
@@ -131,12 +131,12 @@ bool DHCPInterface::waitForData( struct dhcp_t &package )
 
 	if ( sem_timedwait( &semaphore, &timeout ) == 0 ) {
 		pthread_mutex_lock( &mutex );
-		package = packages.back();
-		packages.pop_back();
+		DHCPMessage *dhcpMessage = messages.back();
+		messages.pop_back();
 		pthread_mutex_unlock( &mutex );
-		return true;
+		return dhcpMessage;
 	}
-	return false;
+	return NULL;
 }
 
 void *DHCPInterface::work( void *context )
@@ -173,10 +173,11 @@ void *DHCPInterface::work( void *context )
 				// get data from socket
 				struct dhcp_t dhcpPackage;
 				recv( sockfd, &dhcpPackage, sizeof( dhcpPackage ), 0 );
+				DHCPMessage *dhcpMessage = new DHCPMessage( dhcpPackage );
 
 				// check which filter is active
 				bool addPackage = false;
-				int DHCPInterfaceType = Parser::getDHCPMessageType( dhcpPackage.options );
+				int DHCPInterfaceType = dhcpMessage->getMessageType();
 				printf("Type:%d\n", DHCPInterfaceType );
 				switch ( Resources::Instance()->getState()->getFilter() ) {
 					case 1: // we look at all DHCPInterfaceDISCOVER messages
@@ -214,7 +215,7 @@ void *DHCPInterface::work( void *context )
 				// if we received a message used in a current filter, we need to publish it
 				if ( addPackage == true ) {
 					pthread_mutex_lock( &parent->mutex ); // lock our data mutex
-					parent->packages.push_back( dhcpPackage );
+					parent->messages.push_back( dhcpMessage );
 					pthread_mutex_unlock( &parent->mutex ); // unlock our data mutex
 					sem_post( &parent->semaphore ); // inform main thread data is available
 				}
