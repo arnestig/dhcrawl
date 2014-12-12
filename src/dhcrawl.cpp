@@ -52,8 +52,10 @@ int main( int argc, char *argv[] )
 	}
 	DHCP *dhcpInstance = Resources::Instance()->getDHCP();
 	dhcpInstance->start();
-	//Resources::Instance()->getState()->setFilter( 1 ); // Filter PROBE, will be changed to an enum later on
-	Resources::Instance()->getState()->setFilter( 2 ); // Filter MONITOR, will be changed to an enum later on
+	//Resources::Instance()->getState()->setFilter( 1 ); // Filter DHCPDISCOVER, will be changed to an enum later on
+	//Resources::Instance()->getState()->setFilter( 2 ); // Filter DHCPOFFER, will be changed to an enum later on
+	//Resources::Instance()->getState()->setFilter( 3 ); // Filter DHCPREQUESTS, will be changed to an enum later on
+	Resources::Instance()->getState()->setFilter( 4 ); // Filter PROBE, will be changed to an enum later on
 	dhcpInstance->discover( "00:23:14:8f:46:d4" );
 	while( 1 ) {
 		struct dhcp_t dhcpPackage;

@@ -108,7 +108,7 @@ void DHCP::discover( std::string hardware )
 	dhcpMessage.chaddr[ 4 ] = hw[ 4 ];
 	dhcpMessage.chaddr[ 5 ] = hw[ 5 ];
 
-    if ( sendto( DHCPsocket[ 0 ], &dhcpMessage, sizeof(dhcpMessage), 0, (struct sockaddr *)&dhcp_to, sizeof(dhcp_to) ) != sizeof(dhcpMessage) )
+    if ( sendto( DHCPsocket[ 1 ], &dhcpMessage, sizeof(dhcpMessage), 0, (struct sockaddr *)&dhcp_to, sizeof(dhcp_to) ) != sizeof(dhcpMessage) )
     {
 		std::cerr << "Error during sendto()" << std::endl;
         exit(1);
@@ -168,7 +168,6 @@ void *DHCP::work( void *context )
 		for ( int sockid = 0; sockid < 2; sockid++ ) {
 			int sockfd = parent->DHCPsocket[ sockid ];
 			if ( FD_ISSET( sockfd, &read ) ) {
-
 				struct sockaddr_in fromsock;
 				socklen_t fromlen=sizeof(fromsock);
 				int addr;
@@ -179,35 +178,47 @@ void *DHCP::work( void *context )
 				addr=ntohl(fromsock.sin_addr.s_addr);
 
 				// check which filter is active
-				bool packageAdded = false;
-				int mytype = Parser::getDHCPMessageType( dhcpPackage.options );
-				printf("Type:%d\n", mytype );
+				bool addPackage = false;
+				int DHCPtype = Parser::getDHCPMessageType( dhcpPackage.options );
+				printf("Type:%d\n", DHCPtype );
 				switch ( Resources::Instance()->getState()->getFilter() ) {
-					case 1: { // PROBE - so we only want to see DHCPOFFER messages
-						int DHCPtype = Parser::getDHCPMessageType( dhcpPackage.options );
+					case 1: // we look at all DHCPDISCOVER messages
+						if ( DHCPtype == 1 ) {
+							parent->packages.push_back( dhcpPackage );
+							addPackage = true;
+						}
+						break;
+
+					case 2: // we look at all DHCPOFFER messages
+						if ( DHCPtype == 2 ) {
+							parent->packages.push_back( dhcpPackage );
+							addPackage = true;
+						}
+						break;
+
+					case 3: // we look at all DHCPREQUEST messages
+						if ( DHCPtype == 3 ) {
+							parent->packages.push_back( dhcpPackage );
+							addPackage = true;
+						}
+						break;
+
+					case 4: // we look at all DHCPOFFER messages
 						/** check if the xid is matching our sent out request **/
 						//if ( xid == ntohl( dhcpPackage.xid ) ) {
 						if ( DHCPtype == 2 ) {
 							parent->packages.push_back( dhcpPackage );
-							packageAdded = true;
+							addPackage = true;
 						}
 						break;
-					}
-					case 2: { // MONITOR - we look at all DHCPREQUEST messages
-						int DHCPtype = Parser::getDHCPMessageType( dhcpPackage.options );
-						if ( DHCPtype == 3 ) {
-							parent->packages.push_back( dhcpPackage );
-							packageAdded = true;
-						}
-						break;
-					}
 
 					default: // default or 0, not expected or valid DHCP message type
 					case 0:
 						break;
 				}
 
-				if ( packageAdded == true ) {
+				// if we received a message used in a current filter, we need to publish it
+				if ( addPackage == true ) {
 					pthread_mutex_lock( &parent->mutex ); // lock our data mutex
 					pthread_mutex_unlock( &parent->mutex ); // unlock our data mutex
 					sem_post( &parent->semaphore ); // inform main thread data is available
