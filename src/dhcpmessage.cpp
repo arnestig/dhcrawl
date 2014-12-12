@@ -21,7 +21,6 @@
 
 #include <pthread.h>
 #include "dhcpmessage.h"
-#include "parser.h"
 
 DHCPMessage::DHCPMessage( struct dhcp_t package )
 	:	package( package ),
@@ -74,5 +73,20 @@ void DHCPMessage::printMessage()
 	printf( "CHADDR: %.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n", package.chaddr[ 0 ], package.chaddr[ 1 ], package.chaddr[ 2 ], package.chaddr[ 3 ], package.chaddr[ 4 ], package.chaddr[ 5 ] );
 	printf( " SNAME: %s\n", package.sname );
 	printf( "  FILE: %s\n", package.file );
-	Parser::dumpDHCPOptions( package.options );
+	int i = 0;
+	uint8_t option = 0;
+	while ( option != 255 ) {
+		option = package.options[ i ];
+		uint8_t length = package.options[ ++i ];
+		printf( "Option: %d ( %d ): ", option, length );
+		for ( uint8_t x = 0; x < length; x++ ) {
+			printf( "%d", package.options[ ++i ] );
+		}
+
+		printf( "\n" );
+
+		if ( ++i >= 308 ) {
+			break;
+		}
+	}
 }

@@ -21,7 +21,6 @@
 
 #include <pthread.h>
 #include "dhcpinterface.h"
-#include "parser.h"
 #include "resources.h"
 
 DHCPInterface::DHCPInterface()
