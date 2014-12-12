@@ -22,7 +22,7 @@
 #ifndef __RESOURCES_H__
 #define __RESOURCES_H__
 
-#include "dhcp.h"
+#include "dhcpinterface.h"
 #include "state.h"
 
 class Resources
@@ -31,7 +31,7 @@ class Resources
         static Resources* Instance();
         static void DestroyInstance();
 
-        DHCP* getDHCP() const;
+        DHCPInterface* getDHCPInterface() const;
         State* getState() const;
 
     private:
@@ -40,7 +40,7 @@ class Resources
         ~Resources();
         Resources( Resources const& ) {};
 
-        DHCP *dhcp;
+        DHCPInterface *dhcpInterface;
         State *state;
 };
 

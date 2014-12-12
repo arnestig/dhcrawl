@@ -1,5 +1,5 @@
 /**
-    Copyright (C) 2014 dhcrawl - Probe DHCP servers to see what offers are sent
+    Copyright (C) 2014 dhcrawl - Probe DHCPInterface servers to see what offers are sent
 
     Written by Tobias Eliasson <arnestig@gmail.com>.
 
@@ -19,8 +19,8 @@
     along with dhcrawl.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#ifndef __DHCP_H__
-#define __DHCP_H__
+#ifndef __DHCPINTERFACE_H__
+#define __DHCPINTERFACE_H__
 
 #include <vector>
 #include <iostream>
@@ -52,11 +52,11 @@ struct dhcp_t
 	uint8_t options[ 308 ];
 };
 
-class DHCP
+class DHCPInterface
 {
 	public:
-		DHCP();
-		~DHCP();
+		DHCPInterface();
+		~DHCPInterface();
 
 		void start();
 		void stop();
@@ -66,7 +66,7 @@ class DHCP
 	private:
 		static void *work( void *context );
 
-		int DHCPsocket[ 2 ];
+		int DHCPInterfaceSocket[ 2 ];
 		std::vector< struct dhcp_t > packages;
     	struct sockaddr_in dhcp_to;
     	struct sockaddr_in name67;

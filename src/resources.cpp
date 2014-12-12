@@ -24,16 +24,16 @@
 Resources* Resources::instance = NULL;
 
 Resources::Resources()
-    :   dhcp( NULL ),
+    :   dhcpInterface( NULL ),
 		state( NULL )
 {
-    dhcp = new DHCP();
+    dhcpInterface = new DHCPInterface();
 	state = new State();
 }
 
 Resources::~Resources()
 {
-	delete dhcp;
+	delete dhcpInterface;
 	delete state;
 }
 
@@ -51,12 +51,13 @@ Resources* Resources::Instance()
     return instance;
 }
 
-DHCP* Resources::getDHCP() const
+DHCPInterface* Resources::getDHCPInterface() const
 {
-    return dhcp;
+    return dhcpInterface;
 }
 
 State* Resources::getState() const
 {
     return state;
 }
+

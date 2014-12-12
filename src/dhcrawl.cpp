@@ -50,16 +50,16 @@ int main( int argc, char *argv[] )
 		std::cerr << "This application needs to run with super-user privileges." << std::endl;
 		exit(1);
 	}
-	DHCP *dhcpInstance = Resources::Instance()->getDHCP();
-	dhcpInstance->start();
+	DHCPInterface *dhcpInterface = Resources::Instance()->getDHCPInterface();
+	dhcpInterface->start();
 	//Resources::Instance()->getState()->setFilter( 1 ); // Filter DHCPDISCOVER, will be changed to an enum later on
 	//Resources::Instance()->getState()->setFilter( 2 ); // Filter DHCPOFFER, will be changed to an enum later on
 	Resources::Instance()->getState()->setFilter( 3 ); // Filter DHCPREQUESTS, will be changed to an enum later on
 	//Resources::Instance()->getState()->setFilter( 4 ); // Filter PROBE, will be changed to an enum later on
-	dhcpInstance->discover( "00:23:14:8f:46:d4" );
+	dhcpInterface->discover( "00:23:14:8f:46:d4" );
 	while( 1 ) {
 		struct dhcp_t dhcpPackage;
-		if ( dhcpInstance->waitForData( dhcpPackage ) == true ) {
+		if ( dhcpInterface->waitForData( dhcpPackage ) == true ) {
 			// we received a DHCP package
 			Parser::printDHCPMessage( dhcpPackage );
 		}

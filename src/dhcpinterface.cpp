@@ -1,5 +1,5 @@
 /**
-    Copyright (C) 2014 dhcrawl - Probe DHCP servers to see what offers are sent
+    Copyright (C) 2014 dhcrawl - Probe DHCPInterface servers to see what offers are sent
 
     Written by Tobias Eliasson <arnestig@gmail.com>.
 
@@ -20,14 +20,14 @@
 **/
 
 #include <pthread.h>
-#include "dhcp.h"
+#include "dhcpinterface.h"
 #include "parser.h"
 #include "resources.h"
 
-DHCP::DHCP()
+DHCPInterface::DHCPInterface()
 {
-	DHCPsocket[ 0 ] = 0;
-	DHCPsocket[ 1 ] = 0;
+	DHCPInterfaceSocket[ 0 ] = 0;
+	DHCPInterfaceSocket[ 1 ] = 0;
     dhcp_to.sin_family=AF_INET;
     dhcp_to.sin_addr.s_addr=INADDR_BROADCAST;
     dhcp_to.sin_port=htons(67);
@@ -44,30 +44,30 @@ DHCP::DHCP()
 	pthread_mutex_init( &mutex, NULL );
 }
 
-DHCP::~DHCP()
+DHCPInterface::~DHCPInterface()
 {
 	sem_destroy( &semaphore );
 	pthread_mutex_destroy( &mutex );
 }
 
-void DHCP::start()
+void DHCPInterface::start()
 {
     int socket_mode=1;
 
-    DHCPsocket[ 0 ] = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
-    setsockopt( DHCPsocket[ 0 ], SOL_SOCKET, SO_REUSEADDR, &socket_mode, sizeof( socket_mode ) ); // reuse address
-    setsockopt( DHCPsocket[ 0 ], SOL_SOCKET, SO_BROADCAST, &socket_mode, sizeof( socket_mode ) ); // broadcast mode
+    DHCPInterfaceSocket[ 0 ] = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
+    setsockopt( DHCPInterfaceSocket[ 0 ], SOL_SOCKET, SO_REUSEADDR, &socket_mode, sizeof( socket_mode ) ); // reuse address
+    setsockopt( DHCPInterfaceSocket[ 0 ], SOL_SOCKET, SO_BROADCAST, &socket_mode, sizeof( socket_mode ) ); // broadcast mode
 
-    if ( bind( DHCPsocket[ 0 ], (struct sockaddr *)&name67, sizeof( name67 ) ) < 0 ) {
+    if ( bind( DHCPInterfaceSocket[ 0 ], (struct sockaddr *)&name67, sizeof( name67 ) ) < 0 ) {
         std::cerr << "Error during bind()" << std::endl;
         exit(1);
     }
 
-    DHCPsocket[ 1 ] = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
-    setsockopt( DHCPsocket[ 1 ], SOL_SOCKET, SO_REUSEADDR, &socket_mode, sizeof( socket_mode ) ); // reuse address
-    setsockopt( DHCPsocket[ 1 ], SOL_SOCKET, SO_BROADCAST, &socket_mode, sizeof( socket_mode ) ); // broadcast mode
+    DHCPInterfaceSocket[ 1 ] = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
+    setsockopt( DHCPInterfaceSocket[ 1 ], SOL_SOCKET, SO_REUSEADDR, &socket_mode, sizeof( socket_mode ) ); // reuse address
+    setsockopt( DHCPInterfaceSocket[ 1 ], SOL_SOCKET, SO_BROADCAST, &socket_mode, sizeof( socket_mode ) ); // broadcast mode
 
-    if ( bind( DHCPsocket[ 1 ], (struct sockaddr *)&name68, sizeof( name68 ) ) < 0 ) {
+    if ( bind( DHCPInterfaceSocket[ 1 ], (struct sockaddr *)&name68, sizeof( name68 ) ) < 0 ) {
         std::cerr << "Error during bind()" << std::endl;
         exit(1);
     }
@@ -77,11 +77,11 @@ void DHCP::start()
 
 }
 
-void DHCP::stop()
+void DHCPInterface::stop()
 {
 }
 
-void DHCP::discover( std::string hardware )
+void DHCPInterface::discover( std::string hardware )
 {
 	struct dhcp_t dhcpMessage;
 	bzero( &dhcpMessage, sizeof( dhcpMessage ) );
@@ -110,14 +110,14 @@ void DHCP::discover( std::string hardware )
 	dhcpMessage.chaddr[ 4 ] = hw[ 4 ];
 	dhcpMessage.chaddr[ 5 ] = hw[ 5 ];
 
-    if ( sendto( DHCPsocket[ 1 ], &dhcpMessage, sizeof(dhcpMessage), 0, (struct sockaddr *)&dhcp_to, sizeof(dhcp_to) ) != sizeof(dhcpMessage) )
+    if ( sendto( DHCPInterfaceSocket[ 1 ], &dhcpMessage, sizeof(dhcpMessage), 0, (struct sockaddr *)&dhcp_to, sizeof(dhcp_to) ) != sizeof(dhcpMessage) )
     {
 		std::cerr << "Error during sendto()" << std::endl;
         exit(1);
     }
 }
 
-bool DHCP::waitForData( struct dhcp_t &package )
+bool DHCPInterface::waitForData( struct dhcp_t &package )
 {
 	// setup a timeout so we can wait maximum of 40ms
 	struct timespec timeout;
@@ -139,9 +139,9 @@ bool DHCP::waitForData( struct dhcp_t &package )
 	return false;
 }
 
-void *DHCP::work( void *context )
+void *DHCPInterface::work( void *context )
 {
-	DHCP *parent = static_cast< DHCP* >( context );
+	DHCPInterface *parent = static_cast< DHCPInterface* >( context );
     struct timeval timeout;
     timeout.tv_sec=1;
     timeout.tv_usec=0;
@@ -150,7 +150,7 @@ void *DHCP::work( void *context )
         FD_ZERO( &read );
 		int max_sock;
 		for ( int sockid = 0; sockid < 2; sockid++ ) {
-		int sockfd = parent->DHCPsocket[ sockid ];
+		int sockfd = parent->DHCPInterfaceSocket[ sockid ];
 		if ( sockfd > 0 ) {
 			FD_SET( sockfd, &read );
 		}
@@ -168,7 +168,7 @@ void *DHCP::work( void *context )
         }
 
 		for ( int sockid = 0; sockid < 2; sockid++ ) {
-			int sockfd = parent->DHCPsocket[ sockid ];
+			int sockfd = parent->DHCPInterfaceSocket[ sockid ];
 			if ( FD_ISSET( sockfd, &read ) ) {
 				// get data from socket
 				struct dhcp_t dhcpPackage;
@@ -176,37 +176,37 @@ void *DHCP::work( void *context )
 
 				// check which filter is active
 				bool addPackage = false;
-				int DHCPtype = Parser::getDHCPMessageType( dhcpPackage.options );
-				printf("Type:%d\n", DHCPtype );
+				int DHCPInterfaceType = Parser::getDHCPMessageType( dhcpPackage.options );
+				printf("Type:%d\n", DHCPInterfaceType );
 				switch ( Resources::Instance()->getState()->getFilter() ) {
-					case 1: // we look at all DHCPDISCOVER messages
-						if ( DHCPtype == 1 ) {
+					case 1: // we look at all DHCPInterfaceDISCOVER messages
+						if ( DHCPInterfaceType == 1 ) {
 							addPackage = true;
 						}
 						break;
 
-					case 2: // we look at all DHCPOFFER messages
-						if ( DHCPtype == 2 ) {
+					case 2: // we look at all DHCPInterfaceOFFER messages
+						if ( DHCPInterfaceType == 2 ) {
 							addPackage = true;
 						}
 						break;
 
-					case 3: // we look at all DHCPREQUEST messages
-						if ( DHCPtype == 3 ) {
+					case 3: // we look at all DHCPInterfaceREQUEST messages
+						if ( DHCPInterfaceType == 3 ) {
 							addPackage = true;
 						}
 						break;
 
-					case 4: // we look at all DHCPOFFER messages
+					case 4: // we look at all DHCPInterfaceOFFER messages
 						/** check if the xid is matching our sent out request **/
-						if ( DHCPtype == 2 ) {
+						if ( DHCPInterfaceType == 2 ) {
 							if ( Resources::Instance()->getState()->getXid() == ntohl( dhcpPackage.xid ) ) {
 								addPackage = true;
 							}
 						}
 						break;
 
-					default: // default or 0, not expected or valid DHCP message type
+					default: // default or 0, not expected or valid DHCPInterface message type
 					case 0:
 						break;
 				}
