@@ -200,7 +200,7 @@ void *DHCPInterface::work( void *context )
 					case 4: // we look at all DHCPInterfaceOFFER messages
 						/** check if the xid is matching our sent out request **/
 						if ( DHCPInterfaceType == 2 ) {
-							if ( Resources::Instance()->getState()->getXid() == ntohl( dhcpPackage.xid ) ) {
+							if ( Resources::Instance()->getState()->getXid() == dhcpMessage->getXid() ) {
 								addPackage = true;
 							}
 						}

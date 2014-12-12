@@ -72,6 +72,7 @@ class DHCPMessage
 
 		void printMessage();
 		uint8_t getMessageType();
+		uint32_t getXid();
 
 	private:
 		struct dhcp_t package;

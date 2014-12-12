@@ -65,6 +65,11 @@ uint8_t DHCPMessage::getMessageType()
 	return messageType;
 }
 
+uint32_t DHCPMessage::getXid()
+{
+	return package.xid;
+}
+
 void DHCPMessage::printMessage()
 {
 	printf( "    OP: %d\n", package.opcode );
