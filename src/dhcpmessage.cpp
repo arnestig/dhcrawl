@@ -21,6 +21,7 @@
 
 #include <pthread.h>
 #include "dhcpmessage.h"
+#include "parser.h"
 
 DHCPMessage::DHCPMessage( struct dhcp_t package )
 	:	package( package ),
@@ -56,3 +57,22 @@ uint8_t DHCPMessage::getMessageType()
 	return messageType;
 }
 
+void DHCPMessage::printMessage()
+{
+	uint32_t recv_yiaddr = ntohl( package.yiaddr );
+	printf( "    OP: %d\n", package.opcode );
+	printf( " HTYPE: %d\n", package.htype );
+	printf( "  HLEN: %d\n", package.hlen );
+	printf( "  HOPS: %d\n", package.hops );
+	printf( "   XID: %x\n", htonl( package.xid ) );
+	printf( "  SECS: %d\n", htonl( package.secs ) );
+	printf( " FLAGS: %d\n", htonl( package.flags ) );
+	printf( "CIADDR: %d.%d.%d.%d\n", ( htonl( package.ciaddr ) >> 24 ) & 0xFF, ( htonl( package.ciaddr ) >> 16 ) & 0xFF, ( htonl( package.ciaddr ) >> 8 ) & 0xFF, ( htonl( package.ciaddr ) ) & 0xFF );
+	printf( "YIADDR: %d.%d.%d.%d\n", ( htonl( package.yiaddr ) >> 24 ) & 0xFF, ( htonl( package.yiaddr ) >> 16 ) & 0xFF, ( htonl( package.yiaddr ) >> 8 ) & 0xFF, ( htonl( package.yiaddr ) ) & 0xFF );
+	printf( "SIADDR: %d.%d.%d.%d\n", ( htonl( package.siaddr ) >> 24 ) & 0xFF, ( htonl( package.siaddr ) >> 16 ) & 0xFF, ( htonl( package.siaddr ) >> 8 ) & 0xFF, ( htonl( package.siaddr ) ) & 0xFF );
+	printf( "GIADDR: %d.%d.%d.%d\n", ( htonl( package.giaddr ) >> 24 ) & 0xFF, ( htonl( package.giaddr ) >> 16 ) & 0xFF, ( htonl( package.giaddr ) >> 8 ) & 0xFF, ( htonl( package.giaddr ) ) & 0xFF );
+	printf( "CHADDR: %.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n", package.chaddr[ 0 ], package.chaddr[ 1 ], package.chaddr[ 2 ], package.chaddr[ 3 ], package.chaddr[ 4 ], package.chaddr[ 5 ] );
+	printf( " SNAME: %s\n", package.sname );
+	printf( "  FILE: %s\n", package.file );
+	Parser::dumpDHCPOptions( package.options );
+}

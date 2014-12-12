@@ -70,6 +70,7 @@ class DHCPMessage
 		DHCPMessage( struct dhcp_t package );
 		~DHCPMessage();
 
+		void printMessage();
 		uint8_t getMessageType();
 
 	private:
