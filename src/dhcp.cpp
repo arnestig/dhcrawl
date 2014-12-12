@@ -170,14 +170,10 @@ void *DHCP::work( void *context )
 		for ( int sockid = 0; sockid < 2; sockid++ ) {
 			int sockfd = parent->DHCPsocket[ sockid ];
 			if ( FD_ISSET( sockfd, &read ) ) {
-				struct sockaddr_in fromsock;
-				socklen_t fromlen=sizeof(fromsock);
-				int addr;
 
 				// get data from socket
 				struct dhcp_t dhcpPackage;
-				recvfrom( sockfd, &dhcpPackage, sizeof( dhcpPackage ), 0, (struct sockaddr *)&fromsock, &fromlen);
-				addr=ntohl(fromsock.sin_addr.s_addr);
+				recv( sockfd, &dhcpPackage, sizeof( dhcpPackage ), 0 );
 
 				// check which filter is active
 				bool addPackage = false;
