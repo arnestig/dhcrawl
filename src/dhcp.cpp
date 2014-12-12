@@ -170,7 +170,6 @@ void *DHCP::work( void *context )
 		for ( int sockid = 0; sockid < 2; sockid++ ) {
 			int sockfd = parent->DHCPsocket[ sockid ];
 			if ( FD_ISSET( sockfd, &read ) ) {
-
 				// get data from socket
 				struct dhcp_t dhcpPackage;
 				recv( sockfd, &dhcpPackage, sizeof( dhcpPackage ), 0 );
@@ -182,21 +181,18 @@ void *DHCP::work( void *context )
 				switch ( Resources::Instance()->getState()->getFilter() ) {
 					case 1: // we look at all DHCPDISCOVER messages
 						if ( DHCPtype == 1 ) {
-							parent->packages.push_back( dhcpPackage );
 							addPackage = true;
 						}
 						break;
 
 					case 2: // we look at all DHCPOFFER messages
 						if ( DHCPtype == 2 ) {
-							parent->packages.push_back( dhcpPackage );
 							addPackage = true;
 						}
 						break;
 
 					case 3: // we look at all DHCPREQUEST messages
 						if ( DHCPtype == 3 ) {
-							parent->packages.push_back( dhcpPackage );
 							addPackage = true;
 						}
 						break;
@@ -205,7 +201,6 @@ void *DHCP::work( void *context )
 						/** check if the xid is matching our sent out request **/
 						if ( DHCPtype == 2 ) {
 							if ( Resources::Instance()->getState()->getXid() == ntohl( dhcpPackage.xid ) ) {
-								parent->packages.push_back( dhcpPackage );
 								addPackage = true;
 							}
 						}
@@ -219,6 +214,7 @@ void *DHCP::work( void *context )
 				// if we received a message used in a current filter, we need to publish it
 				if ( addPackage == true ) {
 					pthread_mutex_lock( &parent->mutex ); // lock our data mutex
+					parent->packages.push_back( dhcpPackage );
 					pthread_mutex_unlock( &parent->mutex ); // unlock our data mutex
 					sem_post( &parent->semaphore ); // inform main thread data is available
 				}
