@@ -23,6 +23,7 @@
 #define __STATE_H__
 
 #include <pthread.h>
+#include <stdint.h>
 
 class State
 {
@@ -32,10 +33,13 @@ class State
 
 		unsigned int getFilter();
 		void setFilter( unsigned int filter );
+		uint32_t getXid();
+		void setXid( uint32_t xid );
 
 	private:
 
 		unsigned int filter;
+		uint32_t xid;
 		pthread_mutex_t mutex;
 };
 

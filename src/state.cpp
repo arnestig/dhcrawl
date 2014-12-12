@@ -22,7 +22,8 @@
 #include "state.h"
 
 State::State()
-	:	filter( 0 )
+	:	filter( 0 ),
+		xid( 0 )
 {
 	pthread_mutex_init( &mutex, NULL );
 }
@@ -45,6 +46,22 @@ void State::setFilter( unsigned int filter )
 {
 	pthread_mutex_lock( &mutex );
 	this->filter = filter;
+	pthread_mutex_unlock( &mutex );
+}
+
+uint32_t State::getXid()
+{
+	uint32_t xid;
+	pthread_mutex_lock( &mutex );
+	xid = this->xid;
+	pthread_mutex_unlock( &mutex );
+	return xid;
+}
+
+void State::setXid( uint32_t xid )
+{
+	pthread_mutex_lock( &mutex );
+	this->xid = xid;
 	pthread_mutex_unlock( &mutex );
 }
 

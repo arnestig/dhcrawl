@@ -88,7 +88,9 @@ void DHCP::discover( std::string hardware )
 	dhcpMessage.opcode = 1;
 	dhcpMessage.htype = 1;
 	dhcpMessage.hlen = 6;
-	dhcpMessage.xid = htonl( time( NULL ) );;
+	uint32_t xid = time( NULL );
+	Resources::Instance()->getState()->setXid( xid );
+	dhcpMessage.xid = htonl( xid );
 	dhcpMessage.magic = htonl( 0x63825363 );
 	dhcpMessage.options[ 0 ] = 53;
 	dhcpMessage.options[ 1 ] = 1;
@@ -205,10 +207,11 @@ void *DHCP::work( void *context )
 
 					case 4: // we look at all DHCPOFFER messages
 						/** check if the xid is matching our sent out request **/
-						//if ( xid == ntohl( dhcpPackage.xid ) ) {
 						if ( DHCPtype == 2 ) {
-							parent->packages.push_back( dhcpPackage );
-							addPackage = true;
+							if ( Resources::Instance()->getState()->getXid() == ntohl( dhcpPackage.xid ) ) {
+								parent->packages.push_back( dhcpPackage );
+								addPackage = true;
+							}
 						}
 						break;
 
