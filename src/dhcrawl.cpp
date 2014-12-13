@@ -55,7 +55,7 @@ int main( int argc, char *argv[] )
 	//Resources::Instance()->getState()->setFilter( 2 ); // Filter DHCPOFFER, will be changed to an enum later on
 	//Resources::Instance()->getState()->setFilter( 3 ); // Filter DHCPREQUESTS, will be changed to an enum later on
 	Resources::Instance()->getState()->setFilter( 4 ); // Filter PROBE, will be changed to an enum later on
-	dhcpInterface->discover( "00:23:14:8f:46:d4" );
+	dhcpInterface->sendDiscover( "00:23:14:8f:46:d4" );
 	while( 1 ) {
 		DHCPMessage *message = dhcpInterface->waitForMessage();
 		if ( message != NULL ) {

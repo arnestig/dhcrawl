@@ -80,7 +80,7 @@ void DHCPInterface::stop()
 {
 }
 
-void DHCPInterface::discover( std::string hardware )
+void DHCPInterface::sendDiscover( std::string hardware )
 {
 	struct dhcp_t dhcpPackage;
 	bzero( &dhcpPackage, sizeof( dhcpPackage ) );

@@ -43,7 +43,7 @@ class DHCPInterface
 		void start();
 		void stop();
 		DHCPMessage* waitForMessage();
-		void discover( std::string hardware );
+		void sendDiscover( std::string hardware );
 
 	private:
 		static void *work( void *context );

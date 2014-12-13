@@ -52,20 +52,23 @@ struct dhcp_t
 	uint8_t options[ 308 ];
 };
 
-enum MessageType {
-	DHCPDISCOVER = 1,
-	DHCPOFFER = 2,
-	DHCPREQUEST = 3,
-	DHCPDECLINE = 4,
-	DHCPACK = 5,
-	DHCPNAK = 6,
-	DHCPRELEASE = 7,
-	DHCPINFORM = 8
-};
+namespace DHCP {
+	enum MessageType {
+		DHCPDISCOVER = 1,
+		DHCPOFFER = 2,
+		DHCPREQUEST = 3,
+		DHCPDECLINE = 4,
+		DHCPACK = 5,
+		DHCPNAK = 6,
+		DHCPRELEASE = 7,
+		DHCPINFORM = 8
+	};
+	
+	static const char *messageTypeName[] = { "", "DHCPDISCOVER", "DHCPOFFER", "DHCPREQUEST", "DHCPDECLINE", "DHCPACK", "DHCPNAK", "DHCPRELEASE", "DHCPINFORM" };
+}
 
 class DHCPMessage
 {
-
 	public:
 		DHCPMessage( struct dhcp_t copyPackage );
 		~DHCPMessage();
@@ -75,6 +78,7 @@ class DHCPMessage
 		uint32_t getXid();
 
 	private:
+		std::vector< std::pair< int, std::string > > options;
 		struct dhcp_t package;
 		uint8_t messageType;
 		
