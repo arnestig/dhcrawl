@@ -39,21 +39,89 @@ DHCPMessage::DHCPMessage( struct dhcp_t copyPackage )
 	// parse some information about the dhcp package
 	int i = 0;
 	uint8_t option = 0;
-	while ( option != 255 ) {
+	while ( i < 308 ) {
 		option = package.options[ i ];
+		if ( option == 255 ) {
+			break;
+		}
 		uint8_t length = package.options[ ++i ];
-
-		switch( option ) {
-			case 53: // DHCP Message Type
-				messageType = package.options[ ++i ];
+		switch ( option ) {
+			case 53:
+				messageType = package.options[ i + 1 ];
+				options.push_back( std::make_pair( option, DHCP::messageTypeName[ package.options[ i + 1 ] ] ) );
+				break;
+			case 1:
+			case 3:
+			case 4:
+			case 5:
+			case 6:
+			case 7:
+			case 8:
+			case 9:
+			case 10:
+			case 11:
+			case 16:
+			case 28:
+			case 32:
+			case 41:
+			case 42:
+			case 44:
+			case 45:
+			case 48:
+			case 49:
+			case 50:
+			case 54:
+			case 65:
+			case 68:
+			case 69:
+			case 70:
+			case 71:
+			case 72:
+			case 73:
+			case 74:
+			case 75:
+			case 76:
+			case 85:
+				options.push_back( std::make_pair( option, Formatter::getIPv4Address( &package.options[ i + 1 ], length ) ) );
+				break;
+			case 12:
+			case 14:
+			case 15:
+			case 17:
+			case 18:
+			case 40:
+			case 56:
+			case 60:
+			case 62:
+			case 64:
+			case 66:
+			case 67:
+			case 86:
+			case 87:
+				options.push_back( std::make_pair( option, Formatter::getString( &package.options[ i + 1 ], length ) ) );
+				break;
+			case 23:
+			case 37:
+				options.push_back( std::make_pair( option, Formatter::get8BitString( &package.options[ i + 1 ] ) ) );
+				break;
+			case 13:
+			case 22:
+			case 26:
+			case 57:
+				options.push_back( std::make_pair( option, Formatter::get16BitString( &package.options[ i + 1 ] ) ) );
+				break;
+			case 2:
+			case 24:
+			case 35:
+			case 38:
+			case 51:
+			case 58:
+			case 59:
+				options.push_back( std::make_pair( option, Formatter::get32BitString( &package.options[ i + 1 ] ) ) );
 				break;
 		}
 
-		i += length;
-
-		if ( ++i >= 308 ) {
-			break;
-		};
+		i += length + 1;
 	}
 }
 
@@ -87,101 +155,8 @@ void DHCPMessage::printMessage()
 	printf( "CHADDR: %.2x:%.2x:%.2x:%.2x:%.2x:%.2x\n", package.chaddr[ 0 ], package.chaddr[ 1 ], package.chaddr[ 2 ], package.chaddr[ 3 ], package.chaddr[ 4 ], package.chaddr[ 5 ] );
 	printf( " SNAME: %s\n", package.sname );
 	printf( "  FILE: %s\n", package.file );
-	int i = 0;
-	uint8_t option = 0;
-	while ( i < 308 ) {
-		option = package.options[ i ];
-		if ( option == 255 ) {
-			break;
-		}
-		uint8_t length = package.options[ ++i ];
-		printf( "Option: %d ( %d ): ", option, length );
-		switch ( option ) {
-			case 53:
-				options.push_back( std::make_pair( option, DHCP::messageTypeName[ package.options[ i + 1 ] ] ) );
-				printf( "%s", DHCP::messageTypeName[ package.options[ i + 1 ] ] );
-				break;
-			case 1:
-			case 16:
-			case 28:
-			case 32:
-			case 50:
-			case 54:
-				options.push_back( std::make_pair( option, Formatter::getIPv4Address( &package.options[ i + 1 ] ) ) );
-				std::cout << Formatter::getIPv4Address( &package.options[ i + 1 ] );
-				break;
-			case 3:
-			case 4:
-			case 5:
-			case 6:
-			case 7:
-			case 8:
-			case 9:
-			case 10:
-			case 11:
-			case 41:
-			case 42:
-			case 44:
-			case 45:
-			case 48:
-			case 49:
-			case 65:
-			case 68:
-			case 69:
-			case 70:
-			case 71:
-			case 72:
-			case 73:
-			case 74:
-			case 75:
-			case 76:
-			case 85:
-				options.push_back( std::make_pair( option, Formatter::getMultipleIPv4Address( &package.options[ i + 1 ], length ) ) );
-				std::cout << Formatter::getMultipleIPv4Address( &package.options[ i + 1 ], length );
-				break;
-			case 12:
-			case 14:
-			case 15:
-			case 17:
-			case 18:
-			case 40:
-			case 56:
-			case 60:
-			case 62:
-			case 64:
-			case 66:
-			case 67:
-			case 86:
-			case 87:
-				options.push_back( std::make_pair( option, Formatter::getString( &package.options[ i + 1 ], length ) ) );
-				std::cout << Formatter::getString( &package.options[ i + 1 ], length );
-				break;
-			case 23:
-			case 37:
-				options.push_back( std::make_pair( option, Formatter::get8BitString( &package.options[ i + 1 ] ) ) );
-				std::cout << Formatter::get8BitString( &package.options[ i + 1 ] );
-				break;
-			case 13:
-			case 22:
-			case 26:
-			case 57:
-				options.push_back( std::make_pair( option, Formatter::get16BitString( &package.options[ i + 1 ] ) ) );
-				std::cout << Formatter::get16BitString( &package.options[ i + 1 ] );
-				break;
-			case 2:
-			case 24:
-			case 35:
-			case 38:
-			case 51:
-			case 58:
-			case 59:
-				options.push_back( std::make_pair( option, Formatter::get32BitString( &package.options[ i + 1 ] ) ) );
-				std::cout << Formatter::get32BitString( &package.options[ i + 1 ] );
-				break;
-		}
-
-		i += length + 1;
-
-		printf( "\n" );
+	printf( "OPTIONS\n" );
+	for( std::vector< std::pair< int, std::string > >::iterator it = options.begin(); it != options.end(); ++it ) {
+		printf( "%2d: %s\n", (*it).first, (*it).second.c_str() );
 	}
 }

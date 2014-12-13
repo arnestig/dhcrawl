@@ -27,17 +27,13 @@
 #include <sstream>
 
 namespace Formatter {
-	inline std::string getIPv4Address( uint8_t data[] ) {
-		char buf[ 20 ];
-		sprintf( buf, "%d.%d.%d.%d", data[ 0 ], data[ 1 ], data[ 2 ], data[ 3 ] );
-		return buf;
-	};
-
-	inline std::string getMultipleIPv4Address( uint8_t data[], uint8_t length ) {
+	inline std::string getIPv4Address( uint8_t data[], uint8_t length ) {
 		std::stringstream ss;
 		uint8_t amount = length / 4;
 		while ( amount > 0 ) {
-			ss << getIPv4Address( data );
+			char buf[ 20 ];
+			sprintf( buf, "%d.%d.%d.%d", data[ 0 ], data[ 1 ], data[ 2 ], data[ 3 ] );
+			ss << buf;
 			amount--;
 			if ( amount > 0 ) {
 				ss << ", ";
