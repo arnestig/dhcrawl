@@ -98,6 +98,7 @@ void DHCPMessage::printMessage()
 		printf( "Option: %d ( %d ): ", option, length );
 		switch ( option ) {
 			case 53:
+				options.push_back( std::make_pair( option, DHCP::messageTypeName[ package.options[ i + 1 ] ] ) );
 				printf( "%s", DHCP::messageTypeName[ package.options[ i + 1 ] ] );
 				break;
 			case 1:
@@ -135,6 +136,7 @@ void DHCPMessage::printMessage()
 			case 75:
 			case 76:
 			case 85:
+				options.push_back( std::make_pair( option, Formatter::getMultipleIPv4Address( &package.options[ i + 1 ], length ) ) );
 				std::cout << Formatter::getMultipleIPv4Address( &package.options[ i + 1 ], length );
 				break;
 			case 12:
@@ -151,16 +153,19 @@ void DHCPMessage::printMessage()
 			case 67:
 			case 86:
 			case 87:
+				options.push_back( std::make_pair( option, Formatter::getString( &package.options[ i + 1 ], length ) ) );
 				std::cout << Formatter::getString( &package.options[ i + 1 ], length );
 				break;
 			case 23:
 			case 37:
+				options.push_back( std::make_pair( option, Formatter::get8BitString( &package.options[ i + 1 ] ) ) );
 				std::cout << Formatter::get8BitString( &package.options[ i + 1 ] );
 				break;
 			case 13:
 			case 22:
 			case 26:
 			case 57:
+				options.push_back( std::make_pair( option, Formatter::get16BitString( &package.options[ i + 1 ] ) ) );
 				std::cout << Formatter::get16BitString( &package.options[ i + 1 ] );
 				break;
 			case 2:
@@ -170,6 +175,7 @@ void DHCPMessage::printMessage()
 			case 51:
 			case 58:
 			case 59:
+				options.push_back( std::make_pair( option, Formatter::get32BitString( &package.options[ i + 1 ] ) ) );
 				std::cout << Formatter::get32BitString( &package.options[ i + 1 ] );
 				break;
 		}
