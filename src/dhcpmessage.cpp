@@ -41,14 +41,14 @@ DHCPMessage::DHCPMessage( struct dhcp_t copyPackage )
 	uint8_t option = 0;
 	while ( i < 308 ) {
 		option = package.options[ i ];
-		if ( option == 255 ) {
+		if ( option >= 255 ) {
 			break;
 		}
 		uint8_t length = package.options[ ++i ];
 		switch ( option ) {
 			case 53:
 				messageType = package.options[ i + 1 ];
-				options.push_back( std::make_pair( option, DHCP::messageTypeName[ package.options[ i + 1 ] ] ) );
+				options.push_back( std::make_pair( option, DHCPOptions::messageTypeName[ package.options[ i + 1 ] ] ) );
 				break;
 			case 1:
 			case 3:
@@ -157,6 +157,6 @@ void DHCPMessage::printMessage()
 	printf( "  FILE: %s\n", package.file );
 	printf( "OPTIONS\n" );
 	for( std::vector< std::pair< int, std::string > >::iterator it = options.begin(); it != options.end(); ++it ) {
-		printf( "%2d: %s\n", (*it).first, (*it).second.c_str() );
+		printf( "%20s (%3d): %s\n", DHCPOptions::optionName[ (*it).first ], (*it).first, (*it).second.c_str() );
 	}
 }

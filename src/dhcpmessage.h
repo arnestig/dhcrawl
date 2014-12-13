@@ -31,6 +31,7 @@
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <semaphore.h>
+#include "dhcpoptions.h"
 
 struct dhcp_t
 {
@@ -51,21 +52,6 @@ struct dhcp_t
 	uint32_t magic;
 	uint8_t options[ 308 ];
 };
-
-namespace DHCP {
-	enum MessageType {
-		DHCPDISCOVER = 1,
-		DHCPOFFER = 2,
-		DHCPREQUEST = 3,
-		DHCPDECLINE = 4,
-		DHCPACK = 5,
-		DHCPNAK = 6,
-		DHCPRELEASE = 7,
-		DHCPINFORM = 8
-	};
-	
-	static const char *messageTypeName[] = { "", "DHCPDISCOVER", "DHCPOFFER", "DHCPREQUEST", "DHCPDECLINE", "DHCPACK", "DHCPNAK", "DHCPRELEASE", "DHCPINFORM" };
-}
 
 class DHCPMessage
 {
