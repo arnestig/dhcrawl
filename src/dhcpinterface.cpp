@@ -24,6 +24,7 @@
 #include "resources.h"
 
 DHCPInterface::DHCPInterface()
+    :   timeToQuit( false )
 {
 	DHCPInterfaceSocket[ 0 ] = 0;
 	DHCPInterfaceSocket[ 1 ] = 0;
@@ -45,6 +46,10 @@ DHCPInterface::DHCPInterface()
 
 DHCPInterface::~DHCPInterface()
 {
+    timeToQuit = true;
+    sem_wait( &threadFinished );
+    //sem_destroy( &threadFinished );
+
 	//sem_destroy( &semaphore );
 	//pthread_mutex_destroy( &mutex );
 }
@@ -145,7 +150,7 @@ void *DHCPInterface::work( void *context )
     timeout.tv_sec=1;
     timeout.tv_usec=0;
     fd_set read;
-    while (1) {
+    while ( parent->timeToQuit == false ) {
         FD_ZERO( &read );
 		int max_sock;
 		for ( int sockid = 0; sockid < 2; sockid++ ) {
@@ -221,4 +226,6 @@ void *DHCPInterface::work( void *context )
 			}
 		}
     }
+
+    sem_post( &parent->threadFinished );
 }

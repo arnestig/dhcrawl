@@ -30,7 +30,6 @@
 #include <string.h>
 #include <sys/select.h>
 #include <sys/socket.h>
-#include <semaphore.h>
 
 #include "dhcpmessage.h"
 
@@ -53,9 +52,11 @@ class DHCPInterface
     	struct sockaddr_in dhcp_to;
     	struct sockaddr_in name67;
     	struct sockaddr_in name68;
+        bool timeToQuit;
+        sem_t threadFinished;
+		pthread_t worker;
 		sem_t semaphore;
 		pthread_mutex_t mutex;
-		pthread_t worker;
 };
 
 #endif

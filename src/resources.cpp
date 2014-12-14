@@ -35,9 +35,9 @@ Resources::Resources()
 
 Resources::~Resources()
 {
-//	delete dhcpInterface;
-	delete state;
 	delete window;
+	delete dhcpInterface;
+	delete state;
 }
 
 void Resources::DestroyInstance()

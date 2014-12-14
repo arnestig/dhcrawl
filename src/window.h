@@ -43,18 +43,21 @@ class Window
         ~Window();
 
 		void init();
-		void draw();
 		void addDHCPMessage( DHCPMessage* message );
+		void draw();
 
     private:
+		static void *work( void *context );
 		void showMessage();
 		void handleInput( int c );
 
 		unsigned int selectedPosition;
+        bool timeToQuit;
+        sem_t threadFinished;
+		pthread_t worker;
 		std::vector< DHCPMessage* > messages;
 		DHCPMessage *curMessage;
 		WINDOW *helpWindow;
-		WINDOW *searchWindow;
 		WINDOW *messageWindow;
 };
 
