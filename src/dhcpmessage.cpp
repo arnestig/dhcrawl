@@ -139,6 +139,13 @@ uint32_t DHCPMessage::getXid()
 	return package.xid;
 }
 
+std::string DHCPMessage::getMACAddress()
+{
+    char buf[ 18 ];
+    sprintf( buf, "%.2x:%.2x:%.2x:%.2x:%.2x:%.2x", package.chaddr[ 0 ], package.chaddr[ 1 ], package.chaddr[ 2 ], package.chaddr[ 3 ], package.chaddr[ 4 ], package.chaddr[ 5 ] );
+    return buf;
+}
+
 void DHCPMessage::printMessage()
 {
 	printf( "    OP: %d\n", package.opcode );

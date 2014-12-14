@@ -19,53 +19,44 @@
     along with dhcrawl.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include "resources.h"
+#ifndef __WINDOW__H_
+#define __WINDOW__H_
 
-Resources* Resources::instance = NULL;
+#define Y_OFFSET_SEARCH 0
+#define Y_OFFSET_HELP 1
+#define Y_OFFSET_COMMANDS 2
 
-Resources::Resources()
-    :   dhcpInterface( NULL ),
-		state( NULL ),
-		window( NULL )
+#define K_CTRL_T 20
+#define K_ENTER 10
+#define K_BACKSPACE 127
+
+#include <string>
+#include <vector>
+#include <ncursesw/curses.h>
+
+#include "dhcpmessage.h"
+
+class Window
 {
-    dhcpInterface = new DHCPInterface();
-	state = new State();
-	window = new Window();
-}
+    public:
+        Window();
+        ~Window();
 
-Resources::~Resources()
-{
-//	delete dhcpInterface;
-	delete state;
-	delete window;
-}
+		void init();
+		void draw();
+		void addDHCPMessage( DHCPMessage* message );
 
-void Resources::DestroyInstance()
-{
-    delete instance;
-    instance = NULL;
-}
+    private:
+		void showMessage();
+		void handleInput( int c );
 
-Resources* Resources::Instance()
-{
-    if ( instance == NULL ) {
-        instance = new Resources();
-    }
-    return instance;
-}
+		unsigned int selectedPosition;
+		std::vector< DHCPMessage* > messages;
+		DHCPMessage *curMessage;
+		WINDOW *helpWindow;
+		WINDOW *searchWindow;
+		WINDOW *messageWindow;
+};
 
-DHCPInterface* Resources::getDHCPInterface() const
-{
-    return dhcpInterface;
-}
-
-State* Resources::getState() const
-{
-    return state;
-}
-
-Window* Resources::getWindow() const
-{
-    return window;
-}
+#endif
 

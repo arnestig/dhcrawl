@@ -7,7 +7,7 @@ INSTALL_DATA = install -p -o root -g root -m 644
 CFLAGS += 
 CPPFLAGS +=
 CXXFLAGS += -g -Wall
-LDFLAGS += -pthread -lrt
+LDFLAGS += -pthread -lrt -lncursesw
 
 ifneq (,$(filter noopt,$(DEB_BUILD_OPTIONS)))
 	CXXFLAGS += -O0

@@ -23,6 +23,7 @@
 #define __RESOURCES_H__
 
 #include "dhcpinterface.h"
+#include "window.h"
 #include "state.h"
 
 class Resources
@@ -33,6 +34,7 @@ class Resources
 
         DHCPInterface* getDHCPInterface() const;
         State* getState() const;
+        Window* getWindow() const;
 
     private:
         static Resources* instance;
@@ -42,6 +44,7 @@ class Resources
 
         DHCPInterface *dhcpInterface;
         State *state;
+        Window *window;
 };
 
 #endif

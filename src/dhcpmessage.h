@@ -62,6 +62,7 @@ class DHCPMessage
 		void printMessage();
 		uint8_t getMessageType();
 		uint32_t getXid();
+        std::string getMACAddress();
 
 	private:
 		std::vector< std::pair< int, std::string > > options;

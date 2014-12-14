@@ -45,8 +45,8 @@ DHCPInterface::DHCPInterface()
 
 DHCPInterface::~DHCPInterface()
 {
-	sem_destroy( &semaphore );
-	pthread_mutex_destroy( &mutex );
+	//sem_destroy( &semaphore );
+	//pthread_mutex_destroy( &mutex );
 }
 
 void DHCPInterface::start()
@@ -177,7 +177,6 @@ void *DHCPInterface::work( void *context )
 				// check which filter is active
 				bool addPackage = false;
 				int DHCPInterfaceType = dhcpMessage->getMessageType();
-				printf("Type:%d\n", DHCPInterfaceType );
 				switch ( Resources::Instance()->getState()->getFilter() ) {
 					case 1: // we look at all DHCPInterfaceDISCOVER messages
 						if ( DHCPInterfaceType == 1 ) {
@@ -212,6 +211,7 @@ void *DHCPInterface::work( void *context )
 				}
 
 				// if we received a message used in a current filter, we need to publish it
+				addPackage = true; 
 				if ( addPackage == true ) {
 					pthread_mutex_lock( &parent->mutex ); // lock our data mutex
 					parent->messages.push_back( dhcpMessage );
