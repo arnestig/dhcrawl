@@ -80,6 +80,7 @@ void Window::showMessage()
 
 void Window::handleInput( int c )
 {
+    DHCPInterface *dhcpInterface = Resources::Instance()->getDHCPInterface();
 	switch ( c ) {
 		case KEY_DOWN:
 			if ( selectedPosition < messages.size() - 1 ) {
@@ -95,6 +96,9 @@ void Window::handleInput( int c )
 		case K_ENTER:
 			showMessage();
 		break;
+        case K_CTRL_T:
+            dhcpInterface->sendDiscover( "00:23:14:8f:46:d4" );
+        break;
 		case KEY_UP:
 			if ( selectedPosition > 0 ) {
 				selectedPosition--;
