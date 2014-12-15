@@ -152,16 +152,16 @@ void *DHCPInterface::work( void *context )
     fd_set read;
     while ( parent->timeToQuit == false ) {
         FD_ZERO( &read );
-		int max_sock;
+		int max_sock = 0;
 		for ( int sockid = 0; sockid < 2; sockid++ ) {
-		int sockfd = parent->DHCPInterfaceSocket[ sockid ];
-		if ( sockfd > 0 ) {
-			FD_SET( sockfd, &read );
-		}
+            int sockfd = parent->DHCPInterfaceSocket[ sockid ];
+            if ( sockfd > 0 ) {
+                FD_SET( sockfd, &read );
+            }
 
-		if ( sockfd > max_sock ) {
-			max_sock = sockfd;
-		}
+            if ( sockfd > max_sock ) {
+                max_sock = sockfd;
+            }
 
 		}
 
@@ -228,4 +228,5 @@ void *DHCPInterface::work( void *context )
     }
 
     sem_post( &parent->threadFinished );
+    return 0;
 }

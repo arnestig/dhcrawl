@@ -48,7 +48,7 @@ DHCPMessage::DHCPMessage( struct dhcp_t copyPackage )
 		switch ( option ) {
 			case 53:
 				messageType = package.options[ i + 1 ];
-				options.push_back( std::make_pair( option, DHCPOptions::messageTypeName[ package.options[ i + 1 ] ] ) );
+				options.push_back( std::make_pair( option, DHCPOptions::getMessageTypeName( package.options[ i + 1 ] ) ) );
 				break;
 			case 1:
 			case 3:
@@ -164,6 +164,6 @@ void DHCPMessage::printMessage()
 	printf( "  FILE: %s\n", package.file );
 	printf( "OPTIONS\n" );
 	for( std::vector< std::pair< int, std::string > >::iterator it = options.begin(); it != options.end(); ++it ) {
-		printf( "%20s (%3d): %s\n", DHCPOptions::optionName[ (*it).first ], (*it).first, (*it).second.c_str() );
+		printf( "%20s (%3d): %s\n", DHCPOptions::getOptionName( (*it).first ).c_str(), (*it).first, (*it).second.c_str() );
 	}
 }

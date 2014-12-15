@@ -131,7 +131,7 @@ void Window::draw()
             wattron( messageWindow, COLOR_PAIR(1) );
         } 
 
-        mvwprintw( messageWindow, 1 + messageIndex++, 1, "%s %d %s",(*it)->getMACAddress().c_str(), (*it)->getXid(), DHCPOptions::messageTypeName[ (*it)->getMessageType() ] );
+        mvwprintw( messageWindow, 1 + messageIndex++, 1, "%s %d %s",(*it)->getMACAddress().c_str(), (*it)->getXid(), DHCPOptions::getMessageTypeName( (*it)->getMessageType() ).c_str() );
         wattroff( messageWindow, COLOR_PAIR(1) );
     }
 
@@ -152,5 +152,6 @@ void *Window::work( void *context )
     }
 
     sem_post( &parent->threadFinished );
+    return 0;
 }
 
