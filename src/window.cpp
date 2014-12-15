@@ -32,12 +32,14 @@
 
 Window::Window()
 	:	selectedPosition( 0 ),
-        timeToQuit( false )
+        timeToQuit( false ),
+        lastDrawMessageCount( 0 )
 {
 	initscr();
 	noecho();
 	start_color();
 	sem_init( &threadFinished, 0, 0 );	
+	pthread_mutex_init( &mutex, NULL );
 }
 
 Window::~Window()
@@ -45,6 +47,8 @@ Window::~Window()
     timeToQuit = true;
     sem_wait( &threadFinished );
     sem_destroy( &threadFinished );
+	//pthread_mutex_destroy( &mutex, NULL );
+
 	delwin( helpWindow );
 	delwin( messageWindow );
 	refresh();
@@ -76,6 +80,21 @@ void Window::addDHCPMessage( DHCPMessage *message )
 
 void Window::showMessage()
 {
+}
+
+void Window::queueRedraw()
+{
+    pthread_mutex_lock( &mutex );
+    lastDrawMessageCount = 0;
+    pthread_mutex_unlock( &mutex );
+}
+
+bool Window::shouldRedraw()
+{
+    pthread_mutex_lock( &mutex );
+    bool retval = lastDrawMessageCount != messages.size();
+    pthread_mutex_unlock( &mutex );
+    return retval;
 }
 
 void Window::handleInput( int c )
@@ -117,29 +136,39 @@ void Window::handleInput( int c )
 
 void Window::draw()
 {
-    wclear( helpWindow );
-    wclear( messageWindow );
-    // draw help
-    mvwprintw( helpWindow, 1, 1, "Mode: %d (F5) | Filter: (F6) | Forge DHCP discovery (F7)", Resources::Instance()->getState()->getFilter() );
+    if ( shouldRedraw() == true ) {
+        lastDrawMessageCount = messages.size();
+        wclear( helpWindow );
+        wclear( messageWindow );
+        // draw help
+        mvwprintw( helpWindow, 1, 1, "Mode: %d (F5) | Filter: (F6) | Forge DHCP discovery (F7)", Resources::Instance()->getState()->getFilter() );
 
-    // draw commands
-    init_pair(1,COLOR_BLACK, COLOR_YELLOW);
-    unsigned int messageIndex = 0;
-    for( std::vector< DHCPMessage* >::iterator it = messages.begin(); it != messages.end(); ++it ) {
-        // draw background if this is our selected command
-        if ( messageIndex == selectedPosition ) {
-            wattron( messageWindow, COLOR_PAIR(1) );
-        } 
+        // draw titles
+        wattron( messageWindow, A_BOLD );
+        mvwprintw( messageWindow, 1, 1, "MAC%28s           Type               Server IP            Client IP", "xid" );
+        wattroff( messageWindow, A_BOLD );
 
-        mvwprintw( messageWindow, 1 + messageIndex++, 1, "%s %d %s",(*it)->getMACAddress().c_str(), (*it)->getXid(), DHCPOptions::getMessageTypeName( (*it)->getMessageType() ).c_str() );
-        wattroff( messageWindow, COLOR_PAIR(1) );
+        // draw messages
+        init_pair(1,COLOR_BLACK, COLOR_YELLOW);
+        unsigned int messageIndex = 0;
+        for( std::vector< DHCPMessage* >::iterator it = messages.begin(); it != messages.end(); ++it ) {
+            // draw background if this is our selected message
+            if ( messageIndex == selectedPosition ) {
+                wattron( messageWindow, COLOR_PAIR(1) );
+            } 
+
+            mvwprintw( messageWindow, 2 + messageIndex++, 1, "%s%28x      %s",(*it)->getMACAddress().c_str(), (*it)->getXid(), DHCPOptions::getMessageTypeName( (*it)->getMessageType() ).c_str() );
+            wattroff( messageWindow, COLOR_PAIR(1) );
+        }
+
+
+
+        box( messageWindow, 0, 0 );
+        box( helpWindow, 0, 0 );
+        wnoutrefresh( messageWindow );
+        wnoutrefresh( helpWindow );
+        doupdate();
     }
-
-    box( messageWindow, 0, 0 );
-    box( helpWindow, 0, 0 );
-    wnoutrefresh( messageWindow );
-    wnoutrefresh( helpWindow );
-    doupdate();
 }
 
 void *Window::work( void *context )
@@ -148,7 +177,10 @@ void *Window::work( void *context )
 
     while ( parent->timeToQuit == false ) {
         int c = wgetch( parent->messageWindow );
-        parent->handleInput( c );
+        if ( c != ERR ) {
+            parent->queueRedraw();
+            parent->handleInput( c );
+        }
     }
 
     sem_post( &parent->threadFinished );

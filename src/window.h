@@ -50,10 +50,14 @@ class Window
 		static void *work( void *context );
 		void showMessage();
 		void handleInput( int c );
+        void queueRedraw();
+        bool shouldRedraw();
 
 		unsigned int selectedPosition;
         bool timeToQuit;
+		unsigned int lastDrawMessageCount;
         sem_t threadFinished;
+		pthread_mutex_t mutex;
 		pthread_t worker;
 		std::vector< DHCPMessage* > messages;
 		DHCPMessage *curMessage;
