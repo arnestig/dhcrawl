@@ -146,7 +146,6 @@ void Window::draw()
         // draw titles
         wattron( messageWindow, A_BOLD );
         mvwprintw( messageWindow, 1, 1, "%-20s%-11s%-15s%-18s%-18s", "MAC", "xid", "Type", "Server ID", "Offered IP" );
-        //mvwprintw( messageWindow, 1, 1, "MAC                 xid           Type               Server IP            Client IP", "xid" );
         wattroff( messageWindow, A_BOLD );
 
         // draw messages
@@ -158,12 +157,10 @@ void Window::draw()
                 wattron( messageWindow, COLOR_PAIR(1) );
             } 
 
-            std::string messageType = DHCPOptions::getMessageTypeName( (*it)->getMessageType() );
-            mvwprintw( messageWindow, 2 + messageIndex++, 1, "%-20s%-11.8x%-15s%-18s%-18s",(*it)->getMACAddress().c_str(), (*it)->getXid(), messageType.c_str(), (*it)->getServerIdentifier().c_str(), (*it)->getYiaddr().c_str()  );
+            // print the line containing mac, xid, type, server id, client offered ip
+            mvwprintw( messageWindow, 2 + messageIndex++, 1, "%-20s%-11.8x%-15s%-18s%-18s",(*it)->getMACAddress().c_str(), (*it)->getXid(), DHCPOptions::getMessageTypeName( (*it)->getMessageType() ).c_str(), (*it)->getServerIdentifier().c_str(), (*it)->getYiaddr().c_str()  );
             wattroff( messageWindow, COLOR_PAIR(1) );
         }
-
-
 
         box( messageWindow, 0, 0 );
         box( helpWindow, 0, 0 );
