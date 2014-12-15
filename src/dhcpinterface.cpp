@@ -42,6 +42,8 @@ DHCPInterface::DHCPInterface()
 
 	sem_init( &semaphore, 0, 0 );	
 	pthread_mutex_init( &mutex, NULL );
+
+    srand( time( NULL ) );
 }
 
 DHCPInterface::~DHCPInterface()
@@ -92,7 +94,7 @@ void DHCPInterface::sendDiscover( std::string hardware )
 	dhcpPackage.opcode = 1;
 	dhcpPackage.htype = 1;
 	dhcpPackage.hlen = 6;
-	uint32_t xid = time( NULL );
+	uint32_t xid = rand();
 	Resources::Instance()->getState()->setXid( xid );
 	dhcpPackage.xid = htonl( xid );
 	dhcpPackage.magic = htonl( 0x63825363 );
