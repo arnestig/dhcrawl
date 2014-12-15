@@ -34,8 +34,7 @@
 #include "dhcpoptions.h"
 
 struct dhcp_t
-{
-	uint8_t opcode;
+{ uint8_t opcode;
 	uint8_t htype;
 	uint8_t hlen;
 	uint8_t hops;
@@ -62,11 +61,17 @@ class DHCPMessage
 		void printMessage();
 		uint8_t getMessageType();
 		uint32_t getXid();
+        std::string getYiaddr(); // "your" address, the offered client address
+        std::string getSiaddr(); // Next bootstrap server, normally not used
+        std::string getGiaddr(); // relay agent IP, normally not used
+        std::string getCiaddr(); // client requested IP address
+        std::string getServerIdentifier(); // Server IP
         std::string getMACAddress();
 
 	private:
 		std::vector< std::pair< int, std::string > > options;
 		struct dhcp_t package;
+        uint32_t serverIdentifier;
 		uint8_t messageType;
 		
 };

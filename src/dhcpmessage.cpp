@@ -46,10 +46,14 @@ DHCPMessage::DHCPMessage( struct dhcp_t copyPackage )
 		}
 		uint8_t length = package.options[ ++i ];
 		switch ( option ) {
-			case 53:
+			case 53: // DHCP message type
 				messageType = package.options[ i + 1 ];
 				options.push_back( std::make_pair( option, DHCPOptions::getMessageTypeName( package.options[ i + 1 ] ) ) );
 				break;
+            case 54: // Server identifier
+                serverIdentifier = ( package.options[ i + 1 ] << 24 ) + ( package.options[ i + 2 ] << 16 ) + ( package.options[ i + 3 ] << 8 ) + package.options[ i + 4 ];
+                options.push_back( std::make_pair( option, getServerIdentifier() ) );
+                break;
 			case 1:
 			case 3:
 			case 4:
@@ -70,7 +74,6 @@ DHCPMessage::DHCPMessage( struct dhcp_t copyPackage )
 			case 48:
 			case 49:
 			case 50:
-			case 54:
 			case 65:
 			case 68:
 			case 69:
@@ -137,6 +140,41 @@ uint8_t DHCPMessage::getMessageType()
 uint32_t DHCPMessage::getXid()
 {
 	return package.xid;
+}
+
+std::string DHCPMessage::getYiaddr()
+{
+    char buf[ 16 ];
+    sprintf( buf, "%d.%d.%d.%d", ( package.yiaddr >> 24 ) & 0xFF, ( package.yiaddr >> 16 ) & 0xFF, ( package.yiaddr >> 8 ) & 0xFF, ( package.yiaddr ) & 0xFF );
+    return buf;
+}
+
+std::string DHCPMessage::getSiaddr()
+{
+    char buf[ 16 ];
+    sprintf( buf, "%d.%d.%d.%d", ( package.siaddr >> 24 ) & 0xFF, ( package.siaddr >> 16 ) & 0xFF, ( package.siaddr >> 8 ) & 0xFF, ( package.siaddr ) & 0xFF );
+    return buf;
+}
+
+std::string DHCPMessage::getGiaddr()
+{
+    char buf[ 16 ];
+    sprintf( buf, "%d.%d.%d.%d", ( package.giaddr >> 24 ) & 0xFF, ( package.giaddr >> 16 ) & 0xFF, ( package.giaddr >> 8 ) & 0xFF, ( package.giaddr ) & 0xFF );
+    return buf;
+}
+
+std::string DHCPMessage::getCiaddr()
+{
+    char buf[ 16 ];
+    sprintf( buf, "%d.%d.%d.%d", ( package.ciaddr >> 24 ) & 0xFF, ( package.ciaddr >> 16 ) & 0xFF, ( package.ciaddr >> 8 ) & 0xFF, ( package.ciaddr ) & 0xFF );
+    return buf;
+}
+
+std::string DHCPMessage::getServerIdentifier()
+{
+    char buf[ 16 ];
+    sprintf( buf, "%d.%d.%d.%d", ( serverIdentifier >> 24 ) & 0xFF, ( serverIdentifier >> 16 ) & 0xFF, ( serverIdentifier >> 8 ) & 0xFF, ( serverIdentifier ) & 0xFF );
+    return buf;
 }
 
 std::string DHCPMessage::getMACAddress()
