@@ -33,6 +33,7 @@
 Window::Window()
 	:	selectedPosition( 0 ),
         timeToQuit( false ),
+        showDetails( false ),
         lastDrawMessageCount( 0 )
 {
 	initscr();
@@ -51,6 +52,7 @@ Window::~Window()
 
 	delwin( helpWindow );
 	delwin( messageWindow );
+	delwin( detailsWindow );
 	refresh();
 	endwin();
 }
@@ -68,6 +70,9 @@ void Window::init()
 	// help window
 	helpWindow = newwin( 3, x - 2, y - 3 , 1 );
 
+	// help window
+	detailsWindow = newwin( y-4, x / 2 - 1, 2 , x / 2  );
+
 	pthread_create( &worker, NULL, work, this );
 	pthread_detach( worker );
 
@@ -76,10 +81,9 @@ void Window::init()
 void Window::addDHCPMessage( DHCPMessage *message )
 {
 	messages.push_back( message );
-}
-
-void Window::showMessage()
-{
+    if ( curMessage == NULL ) { // assign curMessage to first message if it's NULL
+        curMessage = messages.front();
+    }
 }
 
 void Window::queueRedraw()
@@ -113,8 +117,9 @@ void Window::handleInput( int c )
 		break;
 		case KEY_ENTER:
 		case K_ENTER:
-			showMessage();
-		break;
+        case K_CTRL_D: // toggle details window
+            showDetails = !showDetails;
+        break;
         case K_CTRL_T:
             dhcpInterface->sendDiscover( "00:23:14:8f:46:d4" );
         break;
@@ -138,10 +143,12 @@ void Window::draw()
 {
     if ( shouldRedraw() == true ) {
         lastDrawMessageCount = messages.size();
-        wclear( helpWindow );
         wclear( messageWindow );
+        wclear( helpWindow );
         // draw help
-        mvwprintw( helpWindow, 1, 1, "Mode: %d (F5) | Filter: (F6) | Forge DHCP discovery (F7)", Resources::Instance()->getState()->getFilter() );
+        mvwprintw( helpWindow, 1, 1, "Mode: %d (F5) | Filter: (F6) | Toggle details: (C-D) | Forge DHCP discovery (F7)", Resources::Instance()->getState()->getFilter() );
+        box( messageWindow, 0, 0 );
+        wnoutrefresh( helpWindow );
 
         // draw titles
         wattron( messageWindow, A_BOLD );
@@ -162,10 +169,32 @@ void Window::draw()
             wattroff( messageWindow, COLOR_PAIR(1) );
         }
 
-        box( messageWindow, 0, 0 );
         box( helpWindow, 0, 0 );
         wnoutrefresh( messageWindow );
-        wnoutrefresh( helpWindow );
+
+        // print details window if we have asked for it
+        if ( showDetails == true && curMessage != NULL ) {
+            struct dhcp_t curPackage = curMessage->getPackage();
+            unsigned int detailsIndex = 0;
+            wclear( detailsWindow );
+            mvwprintw( detailsWindow, ++detailsIndex, 1, "OP: %d   HTYPE: %d   HLEN: %d   HOPS: %d", curPackage.opcode, curPackage.htype, curPackage.hlen, curPackage.hops );
+            mvwprintw( detailsWindow, ++detailsIndex, 1, "XID: %x  SECS: %d    FLAGS: %d", curMessage->getXid(), curPackage.secs, curPackage.flags );
+            mvwprintw( detailsWindow, ++detailsIndex, 1, "CIADDR: %s", curMessage->getCiaddr().c_str() );
+            mvwprintw( detailsWindow, ++detailsIndex, 1, "YIADDR: %s", curMessage->getYiaddr().c_str() );
+            mvwprintw( detailsWindow, ++detailsIndex, 1, "SIADDR: %s", curMessage->getSiaddr().c_str() );
+            mvwprintw( detailsWindow, ++detailsIndex, 1, "GIADDR: %s", curMessage->getGiaddr().c_str() );
+            mvwprintw( detailsWindow, ++detailsIndex, 1, "CHADDR: %s", curMessage->getMACAddress().c_str() );
+            mvwprintw( detailsWindow, ++detailsIndex, 1, " SNAME: %s.", curPackage.sname );
+            mvwprintw( detailsWindow, ++detailsIndex, 1, "  FILE: %s.", curPackage.file );
+            std::vector< std::pair< int, std::string > > curOptions = curMessage->getOptions();
+            for( std::vector< std::pair< int, std::string > >::iterator it = curOptions.begin(); it != curOptions.end(); ++it ) {
+                mvwprintw( detailsWindow, ++detailsIndex, 1, "%3d-%-15s: %s", (*it).first,DHCPOptions::getOptionName( (*it).first ).c_str(), (*it).second.c_str() );
+            }
+
+            box( detailsWindow, 0, 0 );
+            wnoutrefresh( detailsWindow );
+        }
+
         doupdate();
     }
 }

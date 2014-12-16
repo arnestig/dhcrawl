@@ -142,6 +142,16 @@ uint32_t DHCPMessage::getXid()
 	return package.xid;
 }
 
+dhcp_t DHCPMessage::getPackage()
+{
+    return package;
+}
+
+std::vector< std::pair< int, std::string > > DHCPMessage::getOptions()
+{
+    return options;
+}
+
 std::string DHCPMessage::getYiaddr()
 {
     char buf[ 16 ];

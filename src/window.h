@@ -26,6 +26,7 @@
 #define Y_OFFSET_HELP 1
 #define Y_OFFSET_COMMANDS 2
 
+#define K_CTRL_D 4
 #define K_CTRL_T 20
 #define K_ENTER 10
 #define K_BACKSPACE 127
@@ -48,13 +49,13 @@ class Window
 
     private:
 		static void *work( void *context );
-		void showMessage();
 		void handleInput( int c );
         void queueRedraw();
         bool shouldRedraw();
 
 		unsigned int selectedPosition;
         bool timeToQuit;
+        bool showDetails;
 		unsigned int lastDrawMessageCount;
         sem_t threadFinished;
 		pthread_mutex_t mutex;
@@ -63,6 +64,7 @@ class Window
 		DHCPMessage *curMessage;
 		WINDOW *helpWindow;
 		WINDOW *messageWindow;
+		WINDOW *detailsWindow;
 };
 
 #endif

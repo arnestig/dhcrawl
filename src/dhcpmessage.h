@@ -61,6 +61,8 @@ class DHCPMessage
 		void printMessage();
 		uint8_t getMessageType();
 		uint32_t getXid();
+        dhcp_t getPackage();
+        std::vector< std::pair< int, std::string > > getOptions();
         std::string getYiaddr(); // "your" address, the offered client address
         std::string getSiaddr(); // Next bootstrap server, normally not used
         std::string getGiaddr(); // relay agent IP, normally not used
