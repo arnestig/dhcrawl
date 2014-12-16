@@ -31,10 +31,11 @@
 #include "resources.h"
 
 Window::Window()
-	:	selectedPosition( 0 ),
+	:	selectedPosition( -1 ),
         timeToQuit( false ),
         showDetails( false ),
-        lastDrawMessageCount( 0 )
+        lastDrawMessageCount( 0 ),
+        curMessage( NULL )
 {
 	initscr();
 	noecho();
@@ -81,6 +82,7 @@ void Window::init()
 void Window::addDHCPMessage( DHCPMessage *message )
 {
 	messages.insert( messages.begin(), message );
+	selectedPosition++;
     if ( curMessage == NULL ) { // assign curMessage to first message if it's NULL
         curMessage = messages.back();
     }
@@ -164,6 +166,10 @@ void Window::draw()
             if ( messageIndex == selectedPosition ) {
                 wattron( messageWindow, COLOR_PAIR(1) );
             } 
+
+            if ( curMessage == (*it) ) {
+                wattron( messageWindow, COLOR_PAIR(1) );
+            }
 
             // print the line containing mac, xid, type, server id, client offered ip
             mvwprintw( messageWindow, 2 + messageIndex++, 1, "%-20s%-11.8x%-15s%-18s%-18s",(*it)->getMACAddress().c_str(), (*it)->getXid(), DHCPOptions::getMessageTypeName( (*it)->getMessageType() ).c_str(), (*it)->getServerIdentifier().c_str(), (*it)->getYiaddr().c_str()  );
