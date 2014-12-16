@@ -35,7 +35,8 @@ Window::Window()
         timeToQuit( false ),
         showDetails( false ),
         lastDrawMessageCount( 0 ),
-        curMessage( NULL )
+        curMessage( NULL ),
+		messageOffset( 0 )
 {
 	initscr();
 	noecho();
@@ -54,6 +55,7 @@ Window::~Window()
 	delwin( helpWindow );
 	delwin( messageWindow );
 	delwin( detailsWindow );
+	delwin( titleWindow );
 	refresh();
 	endwin();
 }
@@ -63,15 +65,18 @@ void Window::init()
 	int y,x;
 	getmaxyx( stdscr, y, x );
 
-	// command window
-	messageWindow = newwin( y-4, x - 2, 1, 1 );
+	// title window
+	titleWindow = newwin( 3, x - 2, 1, 1 );
+
+	// message window
+	messageWindow = newwin( y-6, x - 2, 3, 1 );
     keypad( messageWindow, true ); // allow keypad to be used, like arrow up, down left right
     wtimeout( messageWindow, 100 ); // set wgetch timeout to 100ms
 
 	// help window
 	helpWindow = newwin( 3, x - 2, y - 3 , 1 );
 
-	// help window
+	// details window
 	detailsWindow = newwin( y-4, x / 2 - 1, 2 , x / 2  );
 
 	pthread_create( &worker, NULL, work, this );
@@ -81,11 +86,13 @@ void Window::init()
 
 void Window::addDHCPMessage( DHCPMessage *message )
 {
+    pthread_mutex_lock( &mutex );
 	messages.insert( messages.begin(), message );
 	selectedPosition++;
     if ( curMessage == NULL ) { // assign curMessage to first message if it's NULL
         curMessage = messages.back();
     }
+    pthread_mutex_unlock( &mutex );
 }
 
 void Window::queueRedraw()
@@ -105,78 +112,93 @@ bool Window::shouldRedraw()
 
 void Window::handleInput( int c )
 {
+    pthread_mutex_lock( &mutex );
     DHCPInterface *dhcpInterface = Resources::Instance()->getDHCPInterface();
 	switch ( c ) {
 		case KEY_DOWN:
-			if ( selectedPosition < messages.size() - 1 ) {
-				selectedPosition++;
+			if ( selectedPosition + messageOffset < messages.size() - 1 ) {
+                int windowY, windowX;
+                getmaxyx( messageWindow, windowY, windowX );
+                if ( selectedPosition < windowY - 2 ) {
+                    selectedPosition++;
+                } else {
+                    messageOffset++;
+                }
+
 				if ( messages.size() > selectedPosition ) {
 					curMessage = messages.at( selectedPosition );
 				} else {
 					curMessage = NULL;
 				}
 			}
-		break;
-		case KEY_ENTER:
-		case K_ENTER:
+            break;
+        case KEY_ENTER:
+        case K_ENTER:
         case K_CTRL_D: // toggle details window
             showDetails = !showDetails;
-        break;
+            break;
         case K_CTRL_T:
             dhcpInterface->sendDiscover( "00:23:14:8f:46:d4" );
-        break;
-		case KEY_UP:
-			if ( selectedPosition > 0 ) {
-				selectedPosition--;
-				if ( messages.size() > selectedPosition ) {
-					curMessage = messages.at( selectedPosition );
-				} else {
-					curMessage = NULL;
-				}
-			}
-		break;
-		default:
-			// stop displaying that message information box?
-		break;
-	}
+            break;
+        case KEY_UP:
+            if ( selectedPosition == 0 && messageOffset > 0 ) {
+                messageOffset--;
+            }
+
+            if ( selectedPosition > 0 ) {
+                selectedPosition--;
+            }
+
+            if ( messages.size() > selectedPosition ) {
+                curMessage = messages.at( selectedPosition );
+            } else {
+                curMessage = NULL;
+            }
+            break;
+        default:
+            break;
+    }
+    pthread_mutex_unlock( &mutex );
 }
 
 void Window::draw()
 {
     if ( shouldRedraw() == true ) {
         lastDrawMessageCount = messages.size();
+        wclear( titleWindow );
         wclear( messageWindow );
         wclear( helpWindow );
+
         // draw help
         mvwprintw( helpWindow, 1, 1, "Mode: %d (F5) | Filter: (F6) | Toggle details: (C-D) | Forge DHCP discovery (F7)", Resources::Instance()->getState()->getFilter() );
-        box( messageWindow, 0, 0 );
+        box( helpWindow, 0, 0 );
         wnoutrefresh( helpWindow );
 
         // draw titles
-        wattron( messageWindow, A_BOLD );
-        mvwprintw( messageWindow, 1, 1, "%-20s%-11s%-15s%-18s%-18s", "MAC", "xid", "Type", "Server ID", "Offered IP" );
-        wattroff( messageWindow, A_BOLD );
+        wattron( titleWindow, A_BOLD );
+        mvwprintw( titleWindow, 1, 1, "%-20s%-11s%-15s%-18s%-18s", "MAC", "xid", "Type", "Server ID", "Offered IP" );
+        wattroff( titleWindow, A_BOLD );
+        box( titleWindow, 0, 0 );
+        wnoutrefresh( titleWindow );
 
         // draw messages
         init_pair(1,COLOR_BLACK, COLOR_YELLOW);
         unsigned int messageIndex = 0;
+        wborder( messageWindow, 0, 0, ' ', 0, ACS_VLINE, ACS_VLINE, 0, 0 );
         
-        for( std::vector< DHCPMessage* >::iterator it = messages.begin(); it != messages.end(); ++it ) {
-            // draw background if this is our selected message
-            if ( messageIndex == selectedPosition ) {
-                wattron( messageWindow, COLOR_PAIR(1) );
-            } 
+        if ( messageOffset <= messages.size() ) {
+            for( std::vector< DHCPMessage* >::iterator it = messages.begin() + messageOffset; it != messages.end(); ++it ) {
+                // draw background if this is our selected message
+                if ( messageIndex == selectedPosition ) {
+                    wattron( messageWindow, COLOR_PAIR(1) );
+                } 
 
-            if ( curMessage == (*it) ) {
-                wattron( messageWindow, COLOR_PAIR(1) );
+                // print the line containing mac, xid, type, server id, client offered ip
+                mvwprintw( messageWindow, messageIndex++, 1, "%-20s%-11.8x%-15s%-18s%-18s",(*it)->getMACAddress().c_str(), (*it)->getXid(), DHCPOptions::getMessageTypeName( (*it)->getMessageType() ).c_str(), (*it)->getServerIdentifier().c_str(), (*it)->getYiaddr().c_str()  );
+                wattroff( messageWindow, COLOR_PAIR(1) );
             }
-
-            // print the line containing mac, xid, type, server id, client offered ip
-            mvwprintw( messageWindow, 2 + messageIndex++, 1, "%-20s%-11.8x%-15s%-18s%-18s",(*it)->getMACAddress().c_str(), (*it)->getXid(), DHCPOptions::getMessageTypeName( (*it)->getMessageType() ).c_str(), (*it)->getServerIdentifier().c_str(), (*it)->getYiaddr().c_str()  );
-            wattroff( messageWindow, COLOR_PAIR(1) );
         }
 
-        box( helpWindow, 0, 0 );
         wnoutrefresh( messageWindow );
 
         // print details window if we have asked for it

@@ -54,6 +54,7 @@ class Window
         bool shouldRedraw();
 
 		unsigned int selectedPosition;
+		int messageOffset;
         bool timeToQuit;
         bool showDetails;
 		unsigned int lastDrawMessageCount;
@@ -63,6 +64,7 @@ class Window
 		std::vector< DHCPMessage* > messages;
 		DHCPMessage *curMessage;
 		WINDOW *helpWindow;
+		WINDOW *titleWindow;
 		WINDOW *messageWindow;
 		WINDOW *detailsWindow;
 };
