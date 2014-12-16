@@ -185,9 +185,10 @@ void Window::draw()
         init_pair(1,COLOR_BLACK, COLOR_YELLOW);
         unsigned int messageIndex = 0;
         wborder( messageWindow, 0, 0, ' ', 0, ACS_VLINE, ACS_VLINE, 0, 0 );
-        
+        int windowX, windowY;
+        getmaxyx( messageWindow, windowY, windowX );
         if ( messageOffset <= messages.size() ) {
-            for( std::vector< DHCPMessage* >::iterator it = messages.begin() + messageOffset; it != messages.end(); ++it ) {
+            for( std::vector< DHCPMessage* >::iterator it = messages.begin() + messageOffset; it != messages.end() && it != messages.begin() + messageOffset + windowY - 1; ++it ) {
                 // draw background if this is our selected message
                 if ( messageIndex == selectedPosition ) {
                     wattron( messageWindow, COLOR_PAIR(1) );
