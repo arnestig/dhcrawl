@@ -80,9 +80,9 @@ void Window::init()
 
 void Window::addDHCPMessage( DHCPMessage *message )
 {
-	messages.push_back( message );
+	messages.insert( messages.begin(), message );
     if ( curMessage == NULL ) { // assign curMessage to first message if it's NULL
-        curMessage = messages.front();
+        curMessage = messages.back();
     }
 }
 
@@ -158,6 +158,7 @@ void Window::draw()
         // draw messages
         init_pair(1,COLOR_BLACK, COLOR_YELLOW);
         unsigned int messageIndex = 0;
+        
         for( std::vector< DHCPMessage* >::iterator it = messages.begin(); it != messages.end(); ++it ) {
             // draw background if this is our selected message
             if ( messageIndex == selectedPosition ) {
