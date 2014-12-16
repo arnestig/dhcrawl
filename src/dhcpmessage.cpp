@@ -54,6 +54,11 @@ DHCPMessage::DHCPMessage( struct dhcp_t copyPackage )
                 serverIdentifier = ( package.options[ i + 1 ] << 24 ) + ( package.options[ i + 2 ] << 16 ) + ( package.options[ i + 3 ] << 8 ) + package.options[ i + 4 ];
                 options.push_back( std::make_pair( option, getServerIdentifier() ) );
                 break;
+            case 55: // Parameter request list
+                for ( uint8_t curParReqId = 0; curParReqId < length; curParReqId++ ) {
+                    options.push_back( std::make_pair( 55, DHCPOptions::getOptionName( package.options[ i + curParReqId ] ) ) );
+                }
+                break;
 			case 1:
 			case 3:
 			case 4:
