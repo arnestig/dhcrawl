@@ -176,7 +176,7 @@ void Window::draw()
 
         // draw titles
         wattron( titleWindow, A_BOLD );
-        mvwprintw( titleWindow, 1, 1, "%-20s%-11s%-15s%-18s%-18s", "MAC", "xid", "Type", "Server ID", "Offered IP" );
+        mvwprintw( titleWindow, 1, 1, "%-20s%-11s%-15s%-18s%-18s", "MAC", "xid", "Type", "Server ID", "Requested / Offered IP" );
         wattroff( titleWindow, A_BOLD );
         box( titleWindow, 0, 0 );
         wnoutrefresh( titleWindow );
@@ -195,7 +195,7 @@ void Window::draw()
                 } 
 
                 // print the line containing mac, xid, type, server id, client offered ip
-                mvwprintw( messageWindow, messageIndex++, 1, "%-20s%-11.8x%-15s%-18s%-18s",(*it)->getMACAddress().c_str(), (*it)->getXid(), DHCPOptions::getMessageTypeName( (*it)->getMessageType() ).c_str(), (*it)->getServerIdentifier().c_str(), (*it)->getYiaddr().c_str()  );
+                mvwprintw( messageWindow, messageIndex++, 1, "%-20s%-11.8x%-15s%-18s%-18s",(*it)->getMACAddress().c_str(), (*it)->getXid(), DHCPOptions::getMessageTypeName( (*it)->getMessageType() ).c_str(), (*it)->getServerIdentifier().c_str(), (*it)->getOfferedIP().c_str()  );
                 wattroff( messageWindow, COLOR_PAIR(1) );
             }
         }
@@ -216,9 +216,16 @@ void Window::draw()
             mvwprintw( detailsWindow, ++detailsIndex, 1, "CHADDR: %s", curMessage->getMACAddress().c_str() );
             mvwprintw( detailsWindow, ++detailsIndex, 1, " SNAME: %s.", curPackage.sname );
             mvwprintw( detailsWindow, ++detailsIndex, 1, "  FILE: %s.", curPackage.file );
-            std::vector< std::pair< int, std::string > > curOptions = curMessage->getOptions();
-            for( std::vector< std::pair< int, std::string > >::iterator it = curOptions.begin(); it != curOptions.end(); ++it ) {
+            std::map< int, std::string > curOptions = curMessage->getOptions();
+            for( std::map< int, std::string >::iterator it = curOptions.begin(); it != curOptions.end(); ++it ) {
                 mvwprintw( detailsWindow, ++detailsIndex, 1, "%3d-%-15s: %s", (*it).first,DHCPOptions::getOptionName( (*it).first ).c_str(), (*it).second.c_str() );
+				if ( (*it).first == 55 ) { // print parameter request list if we have it
+        			std::vector< std::string > curParamList = curMessage->getParameterRequestList();
+            		for( std::vector< std::string >::iterator pit = curParamList.begin(); pit != curParamList.end(); ++pit ) {
+						mvwprintw( detailsWindow, ++detailsIndex, 1, "fixthisprint-%s", (*pit).c_str() );
+					}
+					
+				}
             }
 
             box( detailsWindow, 0, 0 );

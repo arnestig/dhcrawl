@@ -23,6 +23,7 @@
 #define __DHCPMESSAGE_H__
 
 #include <vector>
+#include <map>
 #include <iostream>
 #include <netdb.h>
 #include <stdio.h>
@@ -62,16 +63,19 @@ class DHCPMessage
 		uint8_t getMessageType();
 		uint32_t getXid();
         dhcp_t getPackage();
-        std::vector< std::pair< int, std::string > > getOptions();
+        std::map< int, std::string > getOptions();
+        std::vector< std::string > getParameterRequestList();
         std::string getYiaddr(); // "your" address, the offered client address
         std::string getSiaddr(); // Next bootstrap server, normally not used
         std::string getGiaddr(); // relay agent IP, normally not used
         std::string getCiaddr(); // client requested IP address
         std::string getServerIdentifier(); // Server IP
+        std::string getOfferedIP(); // Server IP
         std::string getMACAddress();
 
 	private:
-		std::vector< std::pair< int, std::string > > options;
+		std::map< int, std::string > options;
+		std::vector< std::string > parameterRequestList;
 		struct dhcp_t package;
         uint32_t serverIdentifier;
 		uint8_t messageType;

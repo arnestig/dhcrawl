@@ -48,15 +48,15 @@ DHCPMessage::DHCPMessage( struct dhcp_t copyPackage )
 		switch ( option ) {
 			case 53: // DHCP message type
 				messageType = package.options[ i + 1 ];
-				options.push_back( std::make_pair( option, DHCPOptions::getMessageTypeName( package.options[ i + 1 ] ) ) );
+				options[ option ] = DHCPOptions::getMessageTypeName( package.options[ i + 1 ] );
 				break;
             case 54: // Server identifier
                 serverIdentifier = ( package.options[ i + 1 ] << 24 ) + ( package.options[ i + 2 ] << 16 ) + ( package.options[ i + 3 ] << 8 ) + package.options[ i + 4 ];
-                options.push_back( std::make_pair( option, getServerIdentifier() ) );
+                options[ option ] = getServerIdentifier();
                 break;
             case 55: // Parameter request list
                 for ( uint8_t curParReqId = 0; curParReqId < length; curParReqId++ ) {
-                    options.push_back( std::make_pair( 55, DHCPOptions::getOptionName( package.options[ i + curParReqId ] ) ) );
+                    parameterRequestList.push_back( DHCPOptions::getOptionName( package.options[ i + curParReqId ] ) );
                 }
                 break;
 			case 1:
@@ -90,7 +90,7 @@ DHCPMessage::DHCPMessage( struct dhcp_t copyPackage )
 			case 75:
 			case 76:
 			case 85:
-				options.push_back( std::make_pair( option, Formatter::getIPv4Address( &package.options[ i + 1 ], length ) ) );
+				options[ option ] = Formatter::getIPv4Address( &package.options[ i + 1 ], length );
 				break;
 			case 12:
 			case 14:
@@ -106,17 +106,17 @@ DHCPMessage::DHCPMessage( struct dhcp_t copyPackage )
 			case 67:
 			case 86:
 			case 87:
-				options.push_back( std::make_pair( option, Formatter::getString( &package.options[ i + 1 ], length ) ) );
+				options[ option ] = Formatter::getString( &package.options[ i + 1 ], length );
 				break;
 			case 23:
 			case 37:
-				options.push_back( std::make_pair( option, Formatter::get8BitString( &package.options[ i + 1 ] ) ) );
+				options[ option ] = Formatter::get8BitString( &package.options[ i + 1 ] );
 				break;
 			case 13:
 			case 22:
 			case 26:
 			case 57:
-				options.push_back( std::make_pair( option, Formatter::get16BitString( &package.options[ i + 1 ] ) ) );
+				options[ option ] = Formatter::get16BitString( &package.options[ i + 1 ] );
 				break;
 			case 2:
 			case 24:
@@ -125,7 +125,7 @@ DHCPMessage::DHCPMessage( struct dhcp_t copyPackage )
 			case 51:
 			case 58:
 			case 59:
-				options.push_back( std::make_pair( option, Formatter::get32BitString( &package.options[ i + 1 ] ) ) );
+				options[ option ] = Formatter::get32BitString( &package.options[ i + 1 ] );
 				break;
 		}
 
@@ -152,9 +152,27 @@ dhcp_t DHCPMessage::getPackage()
     return package;
 }
 
-std::vector< std::pair< int, std::string > > DHCPMessage::getOptions()
+std::map< int, std::string > DHCPMessage::getOptions()
 {
     return options;
+}
+
+std::vector< std::string > DHCPMessage::getParameterRequestList()
+{
+	return parameterRequestList;
+}
+
+std::string DHCPMessage::getOfferedIP()
+{
+	if ( package.yiaddr > 0 ) {
+		return getYiaddr();
+	} else if ( package.ciaddr > 0 ) {
+		return getCiaddr();
+	} else if ( options.count( 50 ) ) {
+		return options[ 50 ];
+	} else {
+		return "0.0.0.0";
+	}
 }
 
 std::string DHCPMessage::getYiaddr()
@@ -216,7 +234,7 @@ void DHCPMessage::printMessage()
 	printf( " SNAME: %s\n", package.sname );
 	printf( "  FILE: %s\n", package.file );
 	printf( "OPTIONS\n" );
-	for( std::vector< std::pair< int, std::string > >::iterator it = options.begin(); it != options.end(); ++it ) {
+	for( std::map< int, std::string >::iterator it = options.begin(); it != options.end(); ++it ) {
 		printf( "%20s (%3d): %s\n", DHCPOptions::getOptionName( (*it).first ).c_str(), (*it).first, (*it).second.c_str() );
 	}
 }
