@@ -56,7 +56,7 @@ DHCPInterface::~DHCPInterface()
 	//pthread_mutex_destroy( &mutex );
 }
 
-void DHCPInterface::start()
+bool DHCPInterface::start()
 {
     int socket_mode=1;
 
@@ -66,7 +66,7 @@ void DHCPInterface::start()
 
     if ( bind( DHCPInterfaceSocket[ 0 ], (struct sockaddr *)&name67, sizeof( name67 ) ) < 0 ) {
         std::cerr << "Error during bind()" << std::endl;
-        exit(1);
+        return false;
     }
 
     DHCPInterfaceSocket[ 1 ] = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
@@ -75,19 +75,19 @@ void DHCPInterface::start()
 
     if ( bind( DHCPInterfaceSocket[ 1 ], (struct sockaddr *)&name68, sizeof( name68 ) ) < 0 ) {
         std::cerr << "Error during bind()" << std::endl;
-        exit(1);
+        return false;
     }
 
 	pthread_create( &worker, NULL, work, this );
 	pthread_detach( worker );
-
+    return true;
 }
 
 void DHCPInterface::stop()
 {
 }
 
-void DHCPInterface::sendDiscover( std::string hardware )
+bool DHCPInterface::sendDiscover( std::string hardware )
 {
 	struct dhcp_t dhcpPackage;
 	bzero( &dhcpPackage, sizeof( dhcpPackage ) );
@@ -107,7 +107,7 @@ void DHCPInterface::sendDiscover( std::string hardware )
     memset(&hw,0,sizeof(hw));
     if ( sscanf( hardware.c_str(), "%x:%x:%x:%x:%x:%x", &hw[0], &hw[1], &hw[2], &hw[3], &hw[4], &hw[5] ) != 6 ) {
 		std::cerr << "Invalid mac-format" << std::endl;
-		exit(1);
+        return false;
 	}
 	dhcpPackage.chaddr[ 0 ] = hw[ 0 ];
 	dhcpPackage.chaddr[ 1 ] = hw[ 1 ];
@@ -119,8 +119,9 @@ void DHCPInterface::sendDiscover( std::string hardware )
     if ( sendto( DHCPInterfaceSocket[ 1 ], &dhcpPackage, sizeof(dhcpPackage), 0, (struct sockaddr *)&dhcp_to, sizeof(dhcp_to) ) != sizeof(dhcpPackage) )
     {
 		std::cerr << "Error during sendto()" << std::endl;
-        exit(1);
+        return false;
     }
+    return true;
 }
 
 DHCPMessage* DHCPInterface::waitForMessage()
@@ -167,10 +168,8 @@ void *DHCPInterface::work( void *context )
 
 		}
 
-        if ( select( max_sock+1, &read, 0, 0, &timeout ) < 0 )
-        {
+        if ( select( max_sock+1, &read, 0, 0, &timeout ) < 0 ) {
 			std::cerr << "Error during select()" << std::endl;
-            exit(1);
         }
 
 		for ( int sockid = 0; sockid < 2; sockid++ ) {

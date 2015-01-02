@@ -39,10 +39,10 @@ class DHCPInterface
 		DHCPInterface();
 		~DHCPInterface();
 
-		void start();
+		bool start();
 		void stop();
 		DHCPMessage* waitForMessage();
-		void sendDiscover( std::string hardware );
+		bool sendDiscover( std::string hardware );
 
 	private:
 		static void *work( void *context );
