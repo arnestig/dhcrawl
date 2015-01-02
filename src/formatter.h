@@ -67,6 +67,38 @@ namespace Formatter {
 		sprintf( buf, "%d", data[ 0 ] );
 		return buf;
 	};
+
+    inline uint64_t getMACValue( std::string MACString ) {
+        int a, b, c, d, e, f;
+        uint64_t value = 0;
+        if ( sscanf( MACString.c_str(), "%d:%d:%d:%d:%d:%d", &a, &b, &c, &d, &e, &f )!= 6 ) {
+            return 0;
+        }
+
+        value = uint64_t( a ) << 40;
+        value |= uint64_t( b ) << 32;
+        value |= c << 24;
+        value |= d << 16;
+        value |= e << 8;
+        value |= f;
+
+        return value;
+    };
+
+    inline uint32_t getIPv4Value( std::string dottedIPv4String ) {
+        int a, b, c, d;
+        uint32_t value = 0;
+        if ( sscanf( dottedIPv4String.c_str(), "%d.%d.%d.%d", &a, &b, &c, &d ) != 4 ) {
+            return 0;
+        }
+
+        value = a << 24;
+        value |= b << 16;
+        value |= c << 8;
+        value |= d;
+
+        return value;
+    };
 }
 
 #endif
