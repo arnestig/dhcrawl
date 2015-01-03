@@ -32,6 +32,7 @@
 #include <sys/socket.h>
 
 #include "dhcpmessage.h"
+#include "filter.h"
 
 class DHCPInterface
 {
@@ -41,8 +42,9 @@ class DHCPInterface
 
 		bool start();
 		void stop();
-		DHCPMessage* waitForMessage();
 		bool sendDiscover( std::string hardware );
+        Filter* getFilter();
+        std::vector< DHCPMessage* > getMessages();
 
 	private:
 		static void *work( void *context );
@@ -53,9 +55,9 @@ class DHCPInterface
     	struct sockaddr_in name67;
     	struct sockaddr_in name68;
         bool timeToQuit;
+        Filter *filter;
         sem_t threadFinished;
 		pthread_t worker;
-		sem_t semaphore;
 		pthread_mutex_t mutex;
 };
 

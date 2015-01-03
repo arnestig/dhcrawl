@@ -21,10 +21,10 @@
 
 #include <pthread.h>
 #include "dhcpinterface.h"
-#include "resources.h"
 
 DHCPInterface::DHCPInterface()
-    :   timeToQuit( false )
+    :   timeToQuit( false ),
+        filter( new Filter() )
 {
 	DHCPInterfaceSocket[ 0 ] = 0;
 	DHCPInterfaceSocket[ 1 ] = 0;
@@ -40,7 +40,7 @@ DHCPInterface::DHCPInterface()
     name68.sin_port = htons(68);
     name68.sin_addr.s_addr = INADDR_ANY;
 
-	sem_init( &semaphore, 0, 0 );	
+	sem_init( &threadFinished, 0, 0 );	
 	pthread_mutex_init( &mutex, NULL );
 
     srand( time( NULL ) );
@@ -50,10 +50,10 @@ DHCPInterface::~DHCPInterface()
 {
     timeToQuit = true;
     sem_wait( &threadFinished );
-    //sem_destroy( &threadFinished );
+    sem_destroy( &threadFinished );
 
-	//sem_destroy( &semaphore );
-	//pthread_mutex_destroy( &mutex );
+	pthread_mutex_destroy( &mutex );
+    delete filter;
 }
 
 bool DHCPInterface::start()
@@ -95,7 +95,7 @@ bool DHCPInterface::sendDiscover( std::string hardware )
 	dhcpPackage.htype = 1;
 	dhcpPackage.hlen = 6;
 	uint32_t xid = rand();
-	Resources::Instance()->getState()->setXid( xid );
+	filter->setXid( xid );
 	dhcpPackage.xid = htonl( xid );
 	dhcpPackage.magic = htonl( 0x63825363 );
 	dhcpPackage.options[ 0 ] = 53;
@@ -124,26 +124,20 @@ bool DHCPInterface::sendDiscover( std::string hardware )
     return true;
 }
 
-DHCPMessage* DHCPInterface::waitForMessage()
+Filter* DHCPInterface::getFilter()
 {
-	// setup a timeout so we can wait maximum of 40ms
-	struct timespec timeout;
-	clock_gettime(CLOCK_REALTIME, &timeout);
-	if ( timeout.tv_nsec + 40000000 > 999999999 ) {
-		timeout.tv_sec += 1;
-		timeout.tv_nsec += 40000000 - 999999999;
-	} else {
-		timeout.tv_nsec += 40000000;
-	}
+    return filter;
+}
 
-	if ( sem_timedwait( &semaphore, &timeout ) == 0 ) {
-		pthread_mutex_lock( &mutex );
-		DHCPMessage *dhcpMessage = messages.back();
-		messages.pop_back();
-		pthread_mutex_unlock( &mutex );
-		return dhcpMessage;
-	}
-	return NULL;
+std::vector< DHCPMessage* > DHCPInterface::getMessages()
+{
+    std::vector< DHCPMessage* > retvec;
+    pthread_mutex_lock( &mutex ); // lock our data mutex
+    for( std::vector< DHCPMessage* >::iterator it = messages.begin(); it != messages.end(); ++it ) {
+        retvec.push_back( (*it) );
+    }
+    pthread_mutex_unlock( &mutex ); // unlock our data mutex
+    return retvec;
 }
 
 void *DHCPInterface::work( void *context )
@@ -180,50 +174,9 @@ void *DHCPInterface::work( void *context )
 				recv( sockfd, &dhcpPackage, sizeof( dhcpPackage ), 0 );
 				DHCPMessage *dhcpMessage = new DHCPMessage( dhcpPackage );
 
-				// check which filter is active
-				bool addPackage = false;
-				int DHCPInterfaceType = dhcpMessage->getMessageType();
-				switch ( Resources::Instance()->getState()->getFilter() ) {
-					case 1: // we look at all DHCPInterfaceDISCOVER messages
-						if ( DHCPInterfaceType == 1 ) {
-							addPackage = true;
-						}
-						break;
-
-					case 2: // we look at all DHCPInterfaceOFFER messages
-						if ( DHCPInterfaceType == 2 ) {
-							addPackage = true;
-						}
-						break;
-
-					case 3: // we look at all DHCPInterfaceREQUEST messages
-						if ( DHCPInterfaceType == 3 ) {
-							addPackage = true;
-						}
-						break;
-
-					case 4: // we look at all DHCPInterfaceOFFER messages
-						/** check if the xid is matching our sent out request **/
-						if ( DHCPInterfaceType == 2 ) {
-							if ( Resources::Instance()->getState()->getXid() == dhcpMessage->getXid() ) {
-								addPackage = true;
-							}
-						}
-						break;
-
-					default: // default or 0, not expected or valid DHCPInterface message type
-					case 0:
-						break;
-				}
-
-				// if we received a message used in a current filter, we need to publish it
-				addPackage = true; 
-				if ( addPackage == true ) {
-					pthread_mutex_lock( &parent->mutex ); // lock our data mutex
-					parent->messages.push_back( dhcpMessage );
-					pthread_mutex_unlock( &parent->mutex ); // unlock our data mutex
-					sem_post( &parent->semaphore ); // inform main thread data is available
-				}
+                pthread_mutex_lock( &parent->mutex ); // lock our data mutex
+                parent->messages.insert( parent->messages.begin(), dhcpMessage );
+                pthread_mutex_unlock( &parent->mutex ); // unlock our data mutex
 			}
 		}
     }

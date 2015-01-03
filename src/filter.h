@@ -19,49 +19,42 @@
     along with dhcrawl.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include "state.h"
+#ifndef __FILTER__H_
+#define __FILTER__H_
 
-State::State()
-	:	filter( 0 ),
-		xid( 0 )
-{
-	pthread_mutex_init( &mutex, NULL );
+#include <string>
+#include <stdint.h>
+
+#include "formatter.h"
+
+namespace FilterType {
+    enum FilterType {
+        INVALID_FILTER = 0,
+        IP_FILTER = 1,
+        MAC_FILTER = 2,
+        XID_FILTER = 3
+    };
 }
 
-State::~State()
+class Filter
 {
-	pthread_mutex_destroy( &mutex );
-}
+    public:
+        Filter();
+        ~Filter();
 
-unsigned int State::getFilter()
-{
-	int filter;
-	pthread_mutex_lock( &mutex );
-	filter = this->filter;
-	pthread_mutex_unlock( &mutex );
-	return filter;
-}
+        void setFilter( std::string from, std::string to );
+        void setXid( uint32_t xid );
+        bool matchFilter( std::string MACString, std::string IPString );
+        void getFilterText( std::string &from, std::string &to );
+        FilterType::FilterType getFilterType();
 
-void State::setFilter( unsigned int filter )
-{
-	pthread_mutex_lock( &mutex );
-	this->filter = filter;
-	pthread_mutex_unlock( &mutex );
-}
+    private:
+		pthread_mutex_t mutex;
+        std::string filter[ 2 ];
+        uint32_t IPFilterValue[ 2 ];
+        uint64_t MACFilterValue[ 2 ];
+		uint32_t xid;
+};
 
-uint32_t State::getXid()
-{
-	uint32_t xid;
-	pthread_mutex_lock( &mutex );
-	xid = this->xid;
-	pthread_mutex_unlock( &mutex );
-	return xid;
-}
-
-void State::setXid( uint32_t xid )
-{
-	pthread_mutex_lock( &mutex );
-	this->xid = xid;
-	pthread_mutex_unlock( &mutex );
-}
+#endif
 

@@ -24,7 +24,6 @@
 
 #include "dhcpinterface.h"
 #include "window.h"
-#include "state.h"
 
 class Resources
 {
@@ -33,7 +32,6 @@ class Resources
         static void DestroyInstance();
 
         DHCPInterface* getDHCPInterface() const;
-        State* getState() const;
         Window* getWindow() const;
 
     private:
@@ -42,8 +40,8 @@ class Resources
         ~Resources();
         Resources( Resources const& ) {};
 
+        sem_t semaphore;
         DHCPInterface *dhcpInterface;
-        State *state;
         Window *window;
 };
 

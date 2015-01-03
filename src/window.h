@@ -44,22 +44,26 @@ class Window
         ~Window();
 
 		void init();
-		void addDHCPMessage( DHCPMessage* message );
 		void draw();
 
     private:
 		static void *work( void *context );
 		void handleInput( int c );
+        void getNewMessages();
         void queueRedraw();
         bool shouldRedraw();
+        void drawDetails();
+        void drawFilter();
 
+        std::string filterText[ 2 ];
 		unsigned int selectedPosition;
+		unsigned int filterCursPos;
 		int messageOffset;
         bool timeToQuit;
         bool showDetails;
+        bool showFilter;
 		unsigned int lastDrawMessageCount;
         sem_t threadFinished;
-		pthread_mutex_t mutex;
 		pthread_t worker;
 		std::vector< DHCPMessage* > messages;
 		DHCPMessage *curMessage;
@@ -67,6 +71,7 @@ class Window
 		WINDOW *titleWindow;
 		WINDOW *messageWindow;
 		WINDOW *detailsWindow;
+		WINDOW *filterWindow;
 };
 
 #endif

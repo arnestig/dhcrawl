@@ -25,11 +25,9 @@ Resources* Resources::instance = NULL;
 
 Resources::Resources()
     :   dhcpInterface( NULL ),
-		state( NULL ),
 		window( NULL )
 {
     dhcpInterface = new DHCPInterface();
-	state = new State();
 	window = new Window();
 }
 
@@ -37,7 +35,6 @@ Resources::~Resources()
 {
 	delete window;
 	delete dhcpInterface;
-	delete state;
 }
 
 void Resources::DestroyInstance()
@@ -57,11 +54,6 @@ Resources* Resources::Instance()
 DHCPInterface* Resources::getDHCPInterface() const
 {
     return dhcpInterface;
-}
-
-State* Resources::getState() const
-{
-    return state;
 }
 
 Window* Resources::getWindow() const

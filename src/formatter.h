@@ -22,9 +22,10 @@
 #ifndef __FORMATTER_H__
 #define __FORMATTER_H__
 
-#include "dhcpinterface.h"
-#include "state.h"
 #include <sstream>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 namespace Formatter {
 	inline std::string getIPv4Address( uint8_t data[], uint8_t length ) {

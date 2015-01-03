@@ -26,10 +26,12 @@
 
 #include "resources.h"
 
+sem_t exitSemaphore;
+
 void cleanup()
 {
-	//dhcpInstance->stop();
 	Resources::Instance()->DestroyInstance();
+    sem_post( &exitSemaphore );
 }
 
 void handle_signal( int signal )
@@ -43,6 +45,7 @@ void handle_signal( int signal )
 int main( int argc, char *argv[] )
 {
 	signal( SIGINT, handle_signal );
+	sem_init( &exitSemaphore, 0, 0 );	
 
 	// check that we're running as superuser privileges for binding on DHCP port
 	if ( geteuid() != 0 ) {
@@ -55,25 +58,14 @@ int main( int argc, char *argv[] )
         cleanup();
         return 1;
     }
-	//Resources::Instance()->getState()->setFilter( 1 ); // Filter DHCPDISCOVER, will be changed to an enum later on
-	//Resources::Instance()->getState()->setFilter( 2 ); // Filter DHCPOFFER, will be changed to an enum later on
-	Resources::Instance()->getState()->setFilter( 3 ); // Filter DHCPREQUESTS, will be changed to an enum later on
-	//Resources::Instance()->getState()->setFilter( 4 ); // Filter PROBE, will be changed to an enum later on
+
 	if ( dhcpInterface->sendDiscover( "00:11:22:33:44:55" ) == false ) {
         cleanup();
         return 1;
     }
 
-	while( 1 ) {
-		DHCPMessage *message = dhcpInterface->waitForMessage();
-		if ( message != NULL ) {
-			// we received a DHCP package
-			//message->printMessage();
-			Resources::Instance()->getWindow()->addDHCPMessage( message );
-		}
-		Resources::Instance()->getWindow()->draw();
-	}
-
+    sem_wait( &exitSemaphore );
+    sem_destroy( &exitSemaphore );
     return 0;
 }
 
