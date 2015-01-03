@@ -70,7 +70,7 @@ class DHCPMessage
         std::string getGiaddr(); // relay agent IP, normally not used
         std::string getCiaddr(); // client requested IP address
         std::string getServerIdentifier(); // Server IP
-        std::string getOfferedIP(); // Server IP
+        std::string getOfferedIP(); // Client IP / offered IP
         std::string getMACAddress();
 
 	private:

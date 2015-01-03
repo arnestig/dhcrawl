@@ -73,9 +73,22 @@ void Filter::getFilterText( std::string &from, std::string &to )
 	pthread_mutex_unlock( &mutex );
 }
 
+bool Filter::isFilterActive()
+{
+    if ( filter[ 0 ].empty() == true || filter[ 1 ].empty() == true ) {
+        return false;
+    }
+    return true;
+}
+
 bool Filter::matchFilter( std::string MACString, std::string IPString )
 {
     bool retval = false;
+    // check if our filter is active
+    if ( isFilterActive() == false ) {
+        return true;
+    }
+
 	pthread_mutex_lock( &mutex );
     uint64_t curMACValue = Formatter::getMACValue( MACString );
     uint32_t curIPValue = Formatter::getIPv4Value( IPString );

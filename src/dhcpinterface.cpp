@@ -134,7 +134,9 @@ std::vector< DHCPMessage* > DHCPInterface::getMessages()
     std::vector< DHCPMessage* > retvec;
     pthread_mutex_lock( &mutex ); // lock our data mutex
     for( std::vector< DHCPMessage* >::iterator it = messages.begin(); it != messages.end(); ++it ) {
-        retvec.push_back( (*it) );
+        if ( filter->matchFilter( (*it)->getMACAddress(), (*it)->getOfferedIP() ) == true ) {
+            retvec.push_back( (*it) );
+        }
     }
     pthread_mutex_unlock( &mutex ); // unlock our data mutex
     return retvec;

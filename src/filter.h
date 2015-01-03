@@ -45,6 +45,7 @@ class Filter
         void setFilter( std::string from, std::string to );
         void setXid( uint32_t xid );
         bool matchFilter( std::string MACString, std::string IPString );
+        bool isFilterActive();
         void getFilterText( std::string &from, std::string &to );
         FilterType::FilterType getFilterType();
 
