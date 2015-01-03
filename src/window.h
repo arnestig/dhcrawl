@@ -60,6 +60,7 @@ class Window
 		unsigned int filterCursPos;
 		int messageOffset;
         bool timeToQuit;
+        bool forceDraw;
         bool showDetails;
         bool showFilter;
 		unsigned int lastDrawMessageCount;

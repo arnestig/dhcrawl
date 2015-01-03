@@ -35,6 +35,7 @@ Window::Window()
 		filterCursPos( 0 ),
 		messageOffset( 0 ),
         timeToQuit( false ),
+        forceDraw( true ),
         showDetails( false ),
         showFilter( false ),
         lastDrawMessageCount( 0 ),
@@ -86,12 +87,11 @@ void Window::init()
 
 	pthread_create( &worker, NULL, work, this );
 	pthread_detach( worker );
-
 }
 
 void Window::queueRedraw()
 {
-    lastDrawMessageCount = 0;
+    forceDraw = true;
 }
 
 bool Window::shouldRedraw()
@@ -114,7 +114,7 @@ void Window::getNewMessages()
     }
 
     // assign curMessage to first message if it's NULL
-    if ( curMessage == NULL ) { 
+    if ( curMessage == NULL && messages.empty() == false ) { 
         curMessage = messages.back();
     }
 
@@ -251,7 +251,8 @@ void Window::drawFilter()
 
 void Window::draw()
 {
-    if ( shouldRedraw() == true ) {
+    if ( shouldRedraw() == true || forceDraw == true ) {
+        forceDraw = false;
         lastDrawMessageCount = messages.size();
         wclear( titleWindow );
         wclear( messageWindow );
