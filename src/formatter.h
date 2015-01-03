@@ -72,16 +72,16 @@ namespace Formatter {
     inline uint64_t getMACValue( std::string MACString ) {
         int a, b, c, d, e, f;
         uint64_t value = 0;
-        if ( sscanf( MACString.c_str(), "%d:%d:%d:%d:%d:%d", &a, &b, &c, &d, &e, &f )!= 6 ) {
-            return 0;
+        if ( sscanf( MACString.c_str(), "%x:%x:%x:%x:%x:%x", &a, &b, &c, &d, &e, &f ) != 6 ) {
+            return value;
         }
 
         value = uint64_t( a ) << 40;
         value |= uint64_t( b ) << 32;
-        value |= c << 24;
-        value |= d << 16;
-        value |= e << 8;
-        value |= f;
+        value |= uint64_t( c ) << 24;
+        value |= uint64_t( d ) << 16;
+        value |= uint64_t( e ) << 8;
+        value |= uint64_t( f );
 
         return value;
     };
