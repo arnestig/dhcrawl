@@ -46,10 +46,21 @@ void Filter::setFilter( std::string from, std::string to )
 	pthread_mutex_lock( &mutex );
     filter[ 0 ] = from;
     filter[ 1 ] = to;
-    MACFilterValue[ 0 ] = Formatter::getMACValue( filter[ 0 ] );
-    MACFilterValue[ 1 ] = Formatter::getMACValue( filter[ 1 ] );
-    IPFilterValue[ 0 ] = Formatter::getIPv4Value( filter[ 0 ] );
-    IPFilterValue[ 1 ] = Formatter::getIPv4Value( filter[ 1 ] );
+
+    if ( from.empty() == true && to.empty() == false ) {
+        filter[ 0 ] = to;
+    }
+
+    if ( from.empty() == false && to.empty() == true ) {
+        filter[ 1 ] = from;
+    }
+
+    for( int x = 0; x < 2; x++ ) {
+        MACFilterValue[ x ] = Formatter::getMACValue( filter[ x ] );
+        IPFilterValue[ x ] = Formatter::getIPv4Value( filter[ x ] );
+    }
+    
+    xid = 0;
 	pthread_mutex_unlock( &mutex );
     validateFilterType();
 }
@@ -58,6 +69,8 @@ void Filter::setXid( uint32_t xid )
 {
 	pthread_mutex_lock( &mutex );
 	this->xid = xid;
+    filter[ 0 ] = "";
+    filter[ 1 ] = "";
 	pthread_mutex_unlock( &mutex );
     validateFilterType();
 }
@@ -67,7 +80,7 @@ void Filter::validateFilterType()
 	pthread_mutex_lock( &mutex );
     if ( xid != 0 ) {
         filterType = FilterType::XID_FILTER;
-    } else if ( filter[ 0 ].empty() == false && filter[ 1 ].empty() == false ) {
+    } else if ( filter[ 0 ].empty() == false  ) {
         if ( Formatter::getMACValue( filter[ 0 ] ) != 0 ) {
             filterType = FilterType::MAC_FILTER;
         } else if ( Formatter::getIPv4Value( filter[ 0 ] ) != 0 ) {

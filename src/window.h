@@ -30,6 +30,8 @@
 #define K_CTRL_T 20
 #define K_ENTER 10
 #define K_BACKSPACE 127
+#define K_F5 269
+#define K_F6 270
 
 #include <string>
 #include <vector>

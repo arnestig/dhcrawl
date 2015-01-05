@@ -132,9 +132,16 @@ void Window::handleInput( int c )
                 }
                 break;
             case KEY_UP:
-                if ( filterCursPos > 1 ) {
+                if ( filterCursPos > 0 ) {
                     filterCursPos--;
                 }
+                break;
+            case KEY_ENTER:
+            case K_ENTER:
+            case K_F5:
+                // activateFilter()
+                dhcpInterface->getFilter()->setFilter( filterText[ 0 ], filterText[ 1 ] );
+                showFilter = !showFilter;
                 break;
             case KEY_BACKSPACE:
             case K_BACKSPACE:
@@ -174,6 +181,9 @@ void Window::handleInput( int c )
             case K_ENTER:
             case K_CTRL_D: // toggle details window
                 showDetails = !showDetails;
+                break;
+            case K_F5:
+                showFilter = !showFilter;
                 break;
             case K_CTRL_T:
                 dhcpInterface->sendDiscover( "00:23:14:8f:46:d4" );
@@ -235,7 +245,12 @@ void Window::drawDetails()
 void Window::drawFilter()
 {
     wclear( filterWindow );
-    mvwprintw( filterWindow, 4, 1, "IP/MAC filter" );
+    Filter tempFilter;
+    tempFilter.setFilter( filterText[ 0 ], filterText[ 1 ] );
+    std::string type, range;
+    tempFilter.getFilterText( type, range );
+
+    mvwprintw( filterWindow, 4, 1, "Filter: %s", type.c_str() );
     mvwprintw( filterWindow, 5, 1, "REQUEST/DISCOVER/etc filter" );
     if ( filterCursPos == 0 ) {
         mvwprintw( filterWindow, 2, 1, "  To: %s", filterText[ 1 ].c_str() );
@@ -260,7 +275,7 @@ void Window::draw()
         // draw help
         std::string type, range;
         Resources::Instance()->getDHCPInterface()->getFilter()->getFilterText( type, range );
-        mvwprintw( helpWindow, 1, 1, "Filter: %s (%s) (F6) | Toggle details: (C-D) | Forge DHCP discovery (F7)", type.c_str(), range.c_str() );
+        mvwprintw( helpWindow, 1, 1, "Filter: %s (%s) (F5) | Toggle details: (C-D) | Forge DHCP discovery (F7)", type.c_str(), range.c_str() );
         box( helpWindow, 0, 0 );
         wnoutrefresh( helpWindow );
 

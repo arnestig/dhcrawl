@@ -47,7 +47,7 @@ namespace FilterType {
                 return "xid";
                 break;
             default:
-                return "";
+                return "None";
                 break;
         }
     };

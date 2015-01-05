@@ -72,7 +72,7 @@ namespace Formatter {
     inline uint64_t getMACValue( std::string MACString ) {
         int a, b, c, d, e, f;
         uint64_t value = 0;
-        if ( sscanf( MACString.c_str(), "%x:%x:%x:%x:%x:%x", &a, &b, &c, &d, &e, &f ) != 6 ) {
+        if ( sscanf( MACString.c_str(), "%2x:%2x:%2x:%2x:%2x:%2x", &a, &b, &c, &d, &e, &f ) != 6 ) {
             return value;
         }
 
@@ -89,7 +89,7 @@ namespace Formatter {
     inline uint32_t getIPv4Value( std::string dottedIPv4String ) {
         int a, b, c, d;
         uint32_t value = 0;
-        if ( sscanf( dottedIPv4String.c_str(), "%d.%d.%d.%d", &a, &b, &c, &d ) != 4 ) {
+        if ( sscanf( dottedIPv4String.c_str(), "%3d.%3d.%3d.%3d", &a, &b, &c, &d ) != 4 ) {
             return 0;
         }
 
