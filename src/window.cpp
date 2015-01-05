@@ -314,7 +314,7 @@ void Window::draw()
         // draw help
         std::string type, range;
         Resources::Instance()->getDHCPInterface()->getFilter()->getFilterText( type, range );
-        mvwprintw( helpWindow, 1, 1, "Filter: %s (%s) (F5) | Toggle details: (C-D) | Forge DHCP discovery (F7)", type.c_str(), range.c_str() );
+        mvwprintw( helpWindow, 1, 1, "Filter: %s (%s) (F5) | Toggle details: (C-D) | Forge DHCP discovery (F6)", type.c_str(), range.c_str() );
         box( helpWindow, 0, 0 );
         wnoutrefresh( helpWindow );
 
