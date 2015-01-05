@@ -99,7 +99,7 @@ void Filter::getFilterText( std::string &type, std::string &range )
     type = FilterType::getFilterTypeName( filterType );
     if ( filterType == FilterType::XID_FILTER ) {
         char buf[ 8 ];
-        sprintf( buf, "%x", xid );
+        sprintf( buf, "%.8x", xid );
         range = buf;
     } else if ( filterType == FilterType::MAC_FILTER || filterType == FilterType::IP_FILTER ) {
         std::stringstream ss;
