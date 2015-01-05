@@ -24,6 +24,8 @@
 #include "filter.h"
 
 Filter::Filter()
+    :   filterType( FilterType::INVALID_FILTER ),
+        xid( 0 )
 {
     filter[ 0 ] = "";
     filter[ 1 ] = "";
@@ -45,7 +47,10 @@ void Filter::setFilter( std::string from, std::string to )
     filter[ 1 ] = to;
     MACFilterValue[ 0 ] = Formatter::getMACValue( filter[ 0 ] );
     MACFilterValue[ 1 ] = Formatter::getMACValue( filter[ 1 ] );
+    IPFilterValue[ 0 ] = Formatter::getIPv4Value( filter[ 0 ] );
+    IPFilterValue[ 1 ] = Formatter::getIPv4Value( filter[ 1 ] );
 	pthread_mutex_unlock( &mutex );
+    validateFilterType();
 }
 
 void Filter::setXid( uint32_t xid )
@@ -53,16 +58,30 @@ void Filter::setXid( uint32_t xid )
 	pthread_mutex_lock( &mutex );
 	this->xid = xid;
 	pthread_mutex_unlock( &mutex );
+    validateFilterType();
+}
+
+void Filter::validateFilterType()
+{
+	pthread_mutex_lock( &mutex );
+    if ( xid != 0 ) {
+        filterType = FilterType::XID_FILTER;
+    } else if ( filter[ 0 ].empty() == false && filter[ 1 ].empty() == false ) {
+        if ( Formatter::getMACValue( filter[ 0 ] ) != 0 ) {
+            filterType = FilterType::MAC_FILTER;
+        } else if ( Formatter::getIPv4Value( filter[ 0 ] ) != 0 ) {
+            filterType = FilterType::IP_FILTER;
+        }
+    } else {
+        filterType = FilterType::INVALID_FILTER;
+    }
+
+	pthread_mutex_unlock( &mutex );
 }
 
 FilterType::FilterType Filter::getFilterType()
 {
-    if ( 0 == 1 ) {
-        return FilterType::IP_FILTER;
-    } else if ( 0 == 2 ) {
-        return FilterType::MAC_FILTER;
-    }
-    return FilterType::INVALID_FILTER;
+    return filterType;
 }
 
 void Filter::getFilterText( std::string &from, std::string &to )
@@ -73,28 +92,33 @@ void Filter::getFilterText( std::string &from, std::string &to )
 	pthread_mutex_unlock( &mutex );
 }
 
-bool Filter::isFilterActive()
-{
-    if ( filter[ 0 ].empty() == true || filter[ 1 ].empty() == true ) {
-        return false;
-    }
-    return true;
-}
-
-bool Filter::matchFilter( std::string MACString, std::string IPString )
+bool Filter::matchFilter( std::string MACString, std::string IPString, uint32_t currentXid )
 {
     bool retval = false;
-    // check if our filter is active
-    if ( isFilterActive() == false ) {
-        return true;
-    }
-
+    
 	pthread_mutex_lock( &mutex );
-    uint64_t curMACValue = Formatter::getMACValue( MACString );
-    uint32_t curIPValue = Formatter::getIPv4Value( IPString );
-    if ( curMACValue >= MACFilterValue[ 0 ] && curMACValue <= MACFilterValue[ 1 ] ) {
+    // check if our filter is valid, if not we don't have a filter active
+    if ( filterType == FilterType::INVALID_FILTER ) {
         retval = true;
     }
+
+    // check what filter is active and make correct comparisons
+    if ( filterType == FilterType::MAC_FILTER ) {
+        uint64_t curMACValue = Formatter::getMACValue( MACString );
+        if ( curMACValue >= MACFilterValue[ 0 ] && curMACValue <= MACFilterValue[ 1 ] ) {
+            retval = true;
+        }
+    } else if ( filterType == FilterType::IP_FILTER ) {
+        uint32_t curIPValue = Formatter::getIPv4Value( IPString );
+        if ( curIPValue >= IPFilterValue[ 0 ] && curIPValue <= IPFilterValue[ 1 ] ) {
+            retval = true;
+        }
+    } else if ( filterType == FilterType::XID_FILTER ) {
+        if ( xid == currentXid ) {
+            retval = true;
+        }
+    }
+
 	pthread_mutex_unlock( &mutex );
 
     return retval;

@@ -177,7 +177,6 @@ void Window::handleInput( int c )
                 break;
             case K_CTRL_T:
                 dhcpInterface->sendDiscover( "00:23:14:8f:46:d4" );
-                filter->setFilter( "00:23:14:8f:46:d4", "00:23:14:8f:46:d4" );
                 break;
             case KEY_UP:
                 if ( selectedPosition == 0 && messageOffset > 0 ) {

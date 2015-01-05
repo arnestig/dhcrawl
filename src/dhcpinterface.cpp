@@ -95,6 +95,7 @@ bool DHCPInterface::sendDiscover( std::string hardware )
 	dhcpPackage.htype = 1;
 	dhcpPackage.hlen = 6;
 	uint32_t xid = rand();
+    // set our filter to the xid we just generated, we only want to see data from this xid
 	filter->setXid( xid );
 	dhcpPackage.xid = htonl( xid );
 	dhcpPackage.magic = htonl( 0x63825363 );
@@ -134,7 +135,7 @@ std::vector< DHCPMessage* > DHCPInterface::getMessages()
     std::vector< DHCPMessage* > retvec;
     pthread_mutex_lock( &mutex ); // lock our data mutex
     for( std::vector< DHCPMessage* >::iterator it = messages.begin(); it != messages.end(); ++it ) {
-        if ( filter->matchFilter( (*it)->getMACAddress(), (*it)->getOfferedIP() ) == true ) {
+        if ( filter->matchFilter( (*it)->getMACAddress(), (*it)->getOfferedIP(), (*it)->getXid() ) == true ) {
             retvec.push_back( (*it) );
         }
     }

@@ -44,12 +44,13 @@ class Filter
 
         void setFilter( std::string from, std::string to );
         void setXid( uint32_t xid );
-        bool matchFilter( std::string MACString, std::string IPString );
-        bool isFilterActive();
+        bool matchFilter( std::string MACString, std::string IPString, uint32_t currentXid );
         void getFilterText( std::string &from, std::string &to );
         FilterType::FilterType getFilterType();
 
     private:
+        void validateFilterType();
+        FilterType::FilterType filterType;
 		pthread_mutex_t mutex;
         std::string filter[ 2 ];
         uint32_t IPFilterValue[ 2 ];
