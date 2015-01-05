@@ -25,20 +25,27 @@
 #include "filter.h"
 
 Filter::Filter()
-    :   filterType( FilterType::INVALID_FILTER ),
-        xid( 0 )
 {
-    filter[ 0 ] = "";
-    filter[ 1 ] = "";
-    IPFilterValue[ 0 ] = 0;
-    IPFilterValue[ 1 ] = 0;
-    MACFilterValue[ 0 ] = 0;
-    MACFilterValue[ 1 ] = 0;
+    resetFilter();
 	pthread_mutex_init( &mutex, NULL );
 }
 
 Filter::~Filter()
 {
+}
+
+void Filter::resetFilter()
+{
+	pthread_mutex_lock( &mutex );
+    filterType = FilterType::INVALID_FILTER;
+    filter[ 0 ] = "";
+    filter[ 1 ] = "";
+    xid = 0;
+    IPFilterValue[ 0 ] = 0;
+    IPFilterValue[ 1 ] = 0;
+    MACFilterValue[ 0 ] = 0;
+    MACFilterValue[ 1 ] = 0;
+	pthread_mutex_unlock( &mutex );
 }
 
 void Filter::setFilter( std::string from, std::string to )
@@ -103,7 +110,7 @@ void Filter::getFilterText( std::string &type, std::string &range )
         range = buf;
     } else if ( filterType == FilterType::MAC_FILTER || filterType == FilterType::IP_FILTER ) {
         std::stringstream ss;
-        ss << filter[ 0 ] << "-" << filter[ 1 ];
+        ss << "(" << filter[ 0 ] << "-" << filter[ 1 ] << ")";
         range = ss.str();
     }
 	pthread_mutex_unlock( &mutex );

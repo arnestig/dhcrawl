@@ -86,7 +86,7 @@ void Window::init()
 	detailsWindow = newwin( y-4, x / 2 - 1, 2, x / 2 );
 
 	// filter window
-	filterWindow = newwin( 10, 65, 5, 5 );
+	filterWindow = newwin( 12, 65, 5, 5 );
 
 	// forge window
 	forgeWindow = newwin( 6, 50, y/2-3, x/2-25 );
@@ -141,11 +141,18 @@ void Window::handleInput( int c )
                     filterCursPos--;
                 }
                 break;
+            case K_ESC:
+                showFilter = false;
+                break;
+            case K_CTRL_K:
+                dhcpInterface->getFilter()->resetFilter();
+                showFilter = false;
+                break;
             case KEY_ENTER:
             case K_ENTER:
             case K_F5:
                 dhcpInterface->getFilter()->setFilter( filterText[ 0 ], filterText[ 1 ] );
-                showFilter = !showFilter;
+                showFilter = false;
                 break;
             case KEY_BACKSPACE:
             case K_BACKSPACE:
@@ -162,14 +169,17 @@ void Window::handleInput( int c )
                 break;
 
         }
-    } else if ( showForge == true ) { // filter window is active
+    } else if ( showForge == true ) { // forge window is active
         switch ( c ) {
+            case K_ESC:
+                showForge = false;
+                break;
             case KEY_ENTER:
             case K_ENTER:
             case K_F6:
                 if ( Formatter::getMACValue( forgeText ) != 0 ) {
                     dhcpInterface->sendDiscover( forgeText );
-                    showForge = !showForge;
+                    showForge = false;
                 }
                 break;
             case KEY_BACKSPACE:
@@ -210,10 +220,10 @@ void Window::handleInput( int c )
                 showDetails = !showDetails;
                 break;
             case K_F5:
-                showFilter = !showFilter;
+                showFilter = true;
                 break;
             case K_F6:
-                showForge = !showForge;
+                showForge = true;
                 break;
             case K_CTRL_T:
                 dhcpInterface->sendDiscover( "00:23:14:8f:46:d4" );
@@ -298,6 +308,9 @@ void Window::drawFilter()
         mvwprintw( filterWindow, 1, 1, "From: %s", filterText[ 0 ].c_str() );
         mvwprintw( filterWindow, 2, 1, "  To: %s", filterText[ 1 ].c_str() );
     }
+    mvwprintw( filterWindow, 7, 1, "[ENTER] Save" );
+    mvwprintw( filterWindow, 8, 1, "[^K] Reset" );
+    mvwprintw( filterWindow, 9, 1, "[ESC] Cancel" );
     box( filterWindow, 0, 0 );
     wnoutrefresh( filterWindow );
 }
@@ -314,7 +327,7 @@ void Window::draw()
         // draw help
         std::string type, range;
         Resources::Instance()->getDHCPInterface()->getFilter()->getFilterText( type, range );
-        mvwprintw( helpWindow, 1, 1, "Filter: %s (%s) (F5) | Toggle details: (C-D) | Forge DHCP discovery (F6)", type.c_str(), range.c_str() );
+        mvwprintw( helpWindow, 1, 1, "Filter: %s%s (F5) | Toggle details: (C-D) | Forge DHCP discovery (F6)", type.c_str(), range.c_str() );
         box( helpWindow, 0, 0 );
         wnoutrefresh( helpWindow );
 

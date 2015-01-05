@@ -63,6 +63,7 @@ class Filter
         void setXid( uint32_t xid );
         bool matchFilter( std::string MACString, std::string IPString, uint32_t currentXid );
         void getFilterText( std::string &type, std::string &range );
+        void resetFilter();
 
     private:
         void validateFilterType();

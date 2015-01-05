@@ -27,7 +27,9 @@
 #define Y_OFFSET_COMMANDS 2
 
 #define K_CTRL_D 4
+#define K_CTRL_K 11
 #define K_CTRL_T 20
+#define K_ESC 27
 #define K_ENTER 10
 #define K_BACKSPACE 127
 #define K_F5 269
