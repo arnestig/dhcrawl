@@ -20,7 +20,10 @@
 **/
 
 #include <pthread.h>
+#include <signal.h>
 #include "dhcpinterface.h"
+
+extern std::vector< std::string > errorLog;
 
 DHCPInterface::DHCPInterface()
     :   timeToQuit( false ),
@@ -56,7 +59,7 @@ DHCPInterface::~DHCPInterface()
     delete filter;
 }
 
-bool DHCPInterface::start()
+void DHCPInterface::start()
 {
     int socket_mode=1;
 
@@ -65,8 +68,8 @@ bool DHCPInterface::start()
     setsockopt( DHCPInterfaceSocket[ 0 ], SOL_SOCKET, SO_BROADCAST, &socket_mode, sizeof( socket_mode ) ); // broadcast mode
 
     if ( bind( DHCPInterfaceSocket[ 0 ], (struct sockaddr *)&name67, sizeof( name67 ) ) < 0 ) {
-        std::cerr << "Error during bind()" << std::endl;
-        return false;
+        errorLog.push_back( "Error during bind():" );
+        raise( SIGINT );
     }
 
     DHCPInterfaceSocket[ 1 ] = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
@@ -74,20 +77,19 @@ bool DHCPInterface::start()
     setsockopt( DHCPInterfaceSocket[ 1 ], SOL_SOCKET, SO_BROADCAST, &socket_mode, sizeof( socket_mode ) ); // broadcast mode
 
     if ( bind( DHCPInterfaceSocket[ 1 ], (struct sockaddr *)&name68, sizeof( name68 ) ) < 0 ) {
-        std::cerr << "Error during bind()" << std::endl;
-        return false;
+        errorLog.push_back( "Error during bind():" );
+        raise( SIGINT );
     }
 
 	pthread_create( &worker, NULL, work, this );
 	pthread_detach( worker );
-    return true;
 }
 
 void DHCPInterface::stop()
 {
 }
 
-bool DHCPInterface::sendDiscover( std::string hardware )
+void DHCPInterface::sendDiscover( std::string hardware )
 {
 	struct dhcp_t dhcpPackage;
 	bzero( &dhcpPackage, sizeof( dhcpPackage ) );
@@ -107,8 +109,8 @@ bool DHCPInterface::sendDiscover( std::string hardware )
     unsigned int hw[16];
     memset(&hw,0,sizeof(hw));
     if ( sscanf( hardware.c_str(), "%x:%x:%x:%x:%x:%x", &hw[0], &hw[1], &hw[2], &hw[3], &hw[4], &hw[5] ) != 6 ) {
-		std::cerr << "Invalid mac-format" << std::endl;
-        return false;
+        errorLog.push_back( "Invalid mac-format:" );
+        raise( SIGINT );
 	}
 	dhcpPackage.chaddr[ 0 ] = hw[ 0 ];
 	dhcpPackage.chaddr[ 1 ] = hw[ 1 ];
@@ -119,10 +121,9 @@ bool DHCPInterface::sendDiscover( std::string hardware )
 
     if ( sendto( DHCPInterfaceSocket[ 1 ], &dhcpPackage, sizeof(dhcpPackage), 0, (struct sockaddr *)&dhcp_to, sizeof(dhcp_to) ) != sizeof(dhcpPackage) )
     {
-		std::cerr << "Error during sendto()" << std::endl;
-        return false;
+        errorLog.push_back( "Error during sendto():" );
+        raise( SIGINT );
     }
-    return true;
 }
 
 Filter* DHCPInterface::getFilter()

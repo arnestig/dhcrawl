@@ -27,6 +27,7 @@
 #include "resources.h"
 
 sem_t exitSemaphore;
+std::vector< std::string > errorLog;
 
 void cleanup()
 {
@@ -38,7 +39,6 @@ void handle_signal( int signal )
 {
 	if ( signal == SIGINT ) {
 		cleanup();
-		exit( 0 );
 	};
 }
 
@@ -52,20 +52,22 @@ int main( int argc, char *argv[] )
 		std::cerr << "This application needs to run with super-user privileges." << std::endl;
 		exit(1);
 	}
+
 	Resources::Instance()->getWindow()->init();
 	DHCPInterface *dhcpInterface = Resources::Instance()->getDHCPInterface();
-    if ( dhcpInterface->start() == false ) {
-        cleanup();
-        return 1;
-    }
-
-	if ( dhcpInterface->sendDiscover( "00:11:22:33:44:55" ) == false ) {
-        cleanup();
-        return 1;
-    }
+    dhcpInterface->start();
+	dhcpInterface->sendDiscover( "00:11:22:33:44:55" );
 
     sem_wait( &exitSemaphore );
     sem_destroy( &exitSemaphore );
+
+    // print possible errors
+    for( std::vector< std::string >::iterator it = errorLog.begin(); it != errorLog.end(); ++it ) {
+        std::cerr << (*it) << std::endl;
+    }
+    if ( errorLog.empty() == false ) {
+        return 1;
+    }
     return 0;
 }
 

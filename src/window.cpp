@@ -60,6 +60,7 @@ Window::~Window()
 	delwin( detailsWindow );
 	delwin( titleWindow );
 	delwin( filterWindow );
+    refresh();
 	endwin();
 }
 

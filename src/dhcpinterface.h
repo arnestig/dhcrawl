@@ -40,9 +40,9 @@ class DHCPInterface
 		DHCPInterface();
 		~DHCPInterface();
 
-		bool start();
+		void start();
 		void stop();
-		bool sendDiscover( std::string hardware );
+		void sendDiscover( std::string hardware );
         Filter* getFilter();
         std::vector< DHCPMessage* > getMessages();
 
