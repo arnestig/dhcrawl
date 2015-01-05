@@ -38,6 +38,7 @@ Window::Window()
         forceDraw( true ),
         showDetails( false ),
         showFilter( false ),
+        showForge( false ),
         lastDrawMessageCount( 0 ),
         curMessage( NULL )
 {
@@ -56,6 +57,7 @@ Window::~Window()
     sem_destroy( &threadFinished );
 
 	delwin( helpWindow );
+	delwin( forgeWindow );
 	delwin( messageWindow );
 	delwin( detailsWindow );
 	delwin( titleWindow );
@@ -85,6 +87,9 @@ void Window::init()
 
 	// filter window
 	filterWindow = newwin( 10, 65, 5, 5 );
+
+	// forge window
+	forgeWindow = newwin( 6, 50, y/2-3, x/2-25 );
 
 	pthread_create( &worker, NULL, work, this );
 	pthread_detach( worker );
@@ -139,7 +144,6 @@ void Window::handleInput( int c )
             case KEY_ENTER:
             case K_ENTER:
             case K_F5:
-                // activateFilter()
                 dhcpInterface->getFilter()->setFilter( filterText[ 0 ], filterText[ 1 ] );
                 showFilter = !showFilter;
                 break;
@@ -154,6 +158,29 @@ void Window::handleInput( int c )
             default:
                 if ( c > 31 && c < 127 && filterCursPos < 2 ) {
                     filterText[ filterCursPos ].append( (char*)(&c) );
+                }
+                break;
+
+        }
+    } else if ( showForge == true ) { // filter window is active
+        switch ( c ) {
+            case KEY_ENTER:
+            case K_ENTER:
+            case K_F6:
+                if ( Formatter::getMACValue( forgeText ) != 0 ) {
+                    dhcpInterface->sendDiscover( forgeText );
+                    showForge = !showForge;
+                }
+                break;
+            case KEY_BACKSPACE:
+            case K_BACKSPACE:
+                if ( forgeText.length() > 0 ) {
+                    forgeText.erase( forgeText.end() - 1 );
+                }
+                break;
+            default:
+                if ( c > 31 && c < 127 ) {
+                    forgeText.append( (char*)(&c) );
                 }
                 break;
 
@@ -184,6 +211,9 @@ void Window::handleInput( int c )
                 break;
             case K_F5:
                 showFilter = !showFilter;
+                break;
+            case K_F6:
+                showForge = !showForge;
                 break;
             case K_CTRL_T:
                 dhcpInterface->sendDiscover( "00:23:14:8f:46:d4" );
@@ -240,6 +270,15 @@ void Window::drawDetails()
         box( detailsWindow, 0, 0 );
         wnoutrefresh( detailsWindow );
     }
+}
+
+void Window::drawForge()
+{
+    wclear( forgeWindow );
+    mvwprintw( forgeWindow, 1, 5, "-- Send forged DHCP discovery --" );
+    mvwprintw( forgeWindow, 3, 2, "MAC: %s", forgeText.c_str() );
+    box( forgeWindow, 0, 0 );
+    wnoutrefresh( forgeWindow );
 }
 
 void Window::drawFilter()
@@ -311,11 +350,10 @@ void Window::draw()
         // draw detail window if user requested it
         if ( showDetails == true ) {
             drawDetails();
-        }
-
-        // draw filter window if user requested it
-        if ( showFilter == true ) {
+        } else if ( showFilter == true ) { // draw filter window if user requested it
             drawFilter();
+        } else if ( showForge == true ) { // draw forge window if user requested it
+            drawForge();
         }
 
         doupdate();

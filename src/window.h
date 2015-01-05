@@ -56,8 +56,10 @@ class Window
         bool shouldRedraw();
         void drawDetails();
         void drawFilter();
+        void drawForge();
 
         std::string filterText[ 2 ];
+        std::string forgeText;
 		unsigned int selectedPosition;
 		unsigned int filterCursPos;
 		int messageOffset;
@@ -65,12 +67,14 @@ class Window
         bool forceDraw;
         bool showDetails;
         bool showFilter;
+        bool showForge;
 		unsigned int lastDrawMessageCount;
         sem_t threadFinished;
 		pthread_t worker;
 		std::vector< DHCPMessage* > messages;
 		DHCPMessage *curMessage;
 		WINDOW *helpWindow;
+		WINDOW *forgeWindow;
 		WINDOW *titleWindow;
 		WINDOW *messageWindow;
 		WINDOW *detailsWindow;
