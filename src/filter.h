@@ -34,6 +34,23 @@ namespace FilterType {
         MAC_FILTER = 2,
         XID_FILTER = 3
     };
+    
+    inline std::string getFilterTypeName( FilterType::FilterType filterType ) {
+        switch( filterType ) {
+            case IP_FILTER:
+                return "IP";
+                break;
+            case MAC_FILTER:
+                return "MAC";
+                break;
+            case XID_FILTER:
+                return "xid";
+                break;
+            default:
+                return "";
+                break;
+        }
+    };
 }
 
 class Filter
@@ -45,8 +62,7 @@ class Filter
         void setFilter( std::string from, std::string to );
         void setXid( uint32_t xid );
         bool matchFilter( std::string MACString, std::string IPString, uint32_t currentXid );
-        void getFilterText( std::string &from, std::string &to );
-        FilterType::FilterType getFilterType();
+        void getFilterText( std::string &type, std::string &range );
 
     private:
         void validateFilterType();

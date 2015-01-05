@@ -20,6 +20,7 @@
 **/
 
 #include <string>
+#include <sstream>
 
 #include "filter.h"
 
@@ -79,16 +80,19 @@ void Filter::validateFilterType()
 	pthread_mutex_unlock( &mutex );
 }
 
-FilterType::FilterType Filter::getFilterType()
-{
-    return filterType;
-}
-
-void Filter::getFilterText( std::string &from, std::string &to )
+void Filter::getFilterText( std::string &type, std::string &range )
 {
 	pthread_mutex_lock( &mutex );
-    from = filter[ 0 ];
-    to = filter[ 1 ];
+    type = FilterType::getFilterTypeName( filterType );
+    if ( filterType == FilterType::XID_FILTER ) {
+        char buf[ 8 ];
+        sprintf( buf, "%x", xid );
+        range = buf;
+    } else if ( filterType == FilterType::MAC_FILTER || filterType == FilterType::IP_FILTER ) {
+        std::stringstream ss;
+        ss << filter[ 0 ] << "-" << filter[ 1 ];
+        range = ss.str();
+    }
 	pthread_mutex_unlock( &mutex );
 }
 

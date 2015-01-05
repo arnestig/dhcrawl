@@ -123,7 +123,6 @@ void Window::getNewMessages()
 void Window::handleInput( int c )
 {
     DHCPInterface *dhcpInterface = Resources::Instance()->getDHCPInterface();
-    Filter *filter = dhcpInterface->getFilter();
     if ( showFilter == true ) { // filter window is active
         switch ( c ) {
             case KEY_DOWN:
@@ -258,9 +257,9 @@ void Window::draw()
         wclear( helpWindow );
 
         // draw help
-        std::string from, to;
-        Resources::Instance()->getDHCPInterface()->getFilter()->getFilterText( from, to );
-        mvwprintw( helpWindow, 1, 1, "Filter: %s (F6) | Toggle details: (C-D) | Forge DHCP discovery (F7)", from.c_str() );
+        std::string type, range;
+        Resources::Instance()->getDHCPInterface()->getFilter()->getFilterText( type, range );
+        mvwprintw( helpWindow, 1, 1, "Filter: %s (%s) (F6) | Toggle details: (C-D) | Forge DHCP discovery (F7)", type.c_str(), range.c_str() );
         box( helpWindow, 0, 0 );
         wnoutrefresh( helpWindow );
 
