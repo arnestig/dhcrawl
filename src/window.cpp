@@ -42,6 +42,7 @@ Window::Window()
         lastDrawMessageCount( 0 ),
         curMessage( NULL )
 {
+    setenv( "ESCDELAY", "25", false ); // set the ESC delay to 25ms instead of the dreadful default 1000ms
 	initscr();
 	noecho();
 	start_color();
