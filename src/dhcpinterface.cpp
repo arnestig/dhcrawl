@@ -20,6 +20,7 @@
 **/
 
 #include <pthread.h>
+#include <errno.h>
 #include <signal.h>
 #include "dhcpinterface.h"
 
@@ -68,7 +69,9 @@ void DHCPInterface::start()
     setsockopt( DHCPInterfaceSocket[ 0 ], SOL_SOCKET, SO_BROADCAST, &socket_mode, sizeof( socket_mode ) ); // broadcast mode
 
     if ( bind( DHCPInterfaceSocket[ 0 ], (struct sockaddr *)&name67, sizeof( name67 ) ) < 0 ) {
-        errorLog.push_back( "Error during bind():" );
+        char error[ 128 ];
+        sprintf( error, "Error during bind(): %s (%d)", strerror( errno ), errno );
+        errorLog.push_back( error );
         raise( SIGINT );
     }
 
@@ -77,7 +80,9 @@ void DHCPInterface::start()
     setsockopt( DHCPInterfaceSocket[ 1 ], SOL_SOCKET, SO_BROADCAST, &socket_mode, sizeof( socket_mode ) ); // broadcast mode
 
     if ( bind( DHCPInterfaceSocket[ 1 ], (struct sockaddr *)&name68, sizeof( name68 ) ) < 0 ) {
-        errorLog.push_back( "Error during bind():" );
+        char error[ 128 ];
+        sprintf( error, "Error during bind(): %s (%d)", strerror( errno ), errno );
+        errorLog.push_back( error );
         raise( SIGINT );
     }
 
@@ -109,7 +114,9 @@ void DHCPInterface::sendDiscover( std::string hardware )
     unsigned int hw[16];
     memset(&hw,0,sizeof(hw));
     if ( sscanf( hardware.c_str(), "%x:%x:%x:%x:%x:%x", &hw[0], &hw[1], &hw[2], &hw[3], &hw[4], &hw[5] ) != 6 ) {
-        errorLog.push_back( "Invalid mac-format:" );
+        char error[ 128 ];
+        sprintf( error, "Invalid MAC-format: %s", hardware.c_str() );
+        errorLog.push_back( error );
         raise( SIGINT );
 	}
 	dhcpPackage.chaddr[ 0 ] = hw[ 0 ];
@@ -121,7 +128,9 @@ void DHCPInterface::sendDiscover( std::string hardware )
 
     size_t packageSize = sizeof( dhcpPackage ) - 304 * sizeof( uint8_t );
     if ( sendto( DHCPInterfaceSocket[ 1 ], &dhcpPackage, packageSize, 0, (struct sockaddr *)&dhcp_to, sizeof(dhcp_to) ) != packageSize ) {
-        errorLog.push_back( "Error during sendto():" );
+        char error[ 128 ];
+        sprintf( error, "Error during sendto(): %s (%d)", strerror( errno ), errno );
+        errorLog.push_back( error );
         raise( SIGINT );
     }
 }
@@ -167,7 +176,10 @@ void *DHCPInterface::work( void *context )
 		}
 
         if ( select( max_sock+1, &read, 0, 0, &timeout ) < 0 ) {
-			std::cerr << "Error during select()" << std::endl;
+            char error[ 128 ];
+            sprintf( error, "Error during select(): %s (%d)", strerror( errno ), errno );
+            errorLog.push_back( error );
+            raise( SIGINT );
         }
 
 		for ( int sockid = 0; sockid < 2; sockid++ ) {
