@@ -35,7 +35,8 @@
 #include "dhcpoptions.h"
 
 struct dhcp_t
-{ uint8_t opcode;
+{ 
+    uint8_t opcode;
 	uint8_t htype;
 	uint8_t hlen;
 	uint8_t hops;
