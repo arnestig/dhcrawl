@@ -19,8 +19,8 @@
     along with dhcrawl.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#ifndef __WINDOW__H_
-#define __WINDOW__H_
+#ifndef __NCURSES_GUI__H_
+#define __NCURSES_GUI__H_
 
 #define Y_OFFSET_SEARCH 0
 #define Y_OFFSET_HELP 1
@@ -41,11 +41,11 @@
 
 #include "dhcpmessage.h"
 
-class Window
+class NCursesGUI
 {
     public:
-        Window();
-        ~Window();
+        NCursesGUI();
+        ~NCursesGUI();
 
 		void init();
 		void draw();

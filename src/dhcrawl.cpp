@@ -52,7 +52,7 @@ int main( int argc, char *argv[] )
 		exit(1);
 	}
 
-	Resources::Instance()->getWindow()->init();
+	Resources::Instance()->getNCursesGUI()->init();
 	DHCPInterface *dhcpInterface = Resources::Instance()->getDHCPInterface();
     dhcpInterface->start();
 	//dhcpInterface->sendDiscover( "00:11:22:33:44:55" );

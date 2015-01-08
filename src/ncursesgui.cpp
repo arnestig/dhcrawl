@@ -27,10 +27,10 @@
 #include <string.h>
 #include <fstream>
 
-#include "window.h"
+#include "ncursesgui.h"
 #include "resources.h"
 
-Window::Window()
+NCursesGUI::NCursesGUI()
 	:	selectedPosition( 0 ),
 		filterCursPos( 0 ),
 		messageOffset( 0 ),
@@ -51,7 +51,7 @@ Window::Window()
     filterText[ 1 ] = "";
 }
 
-Window::~Window()
+NCursesGUI::~NCursesGUI()
 {
     timeToQuit = true;
     sem_wait( &threadFinished );
@@ -67,7 +67,7 @@ Window::~Window()
 	endwin();
 }
 
-void Window::init()
+void NCursesGUI::init()
 {
 	int y,x;
 	getmaxyx( stdscr, y, x );
@@ -96,17 +96,17 @@ void Window::init()
 	pthread_detach( worker );
 }
 
-void Window::queueRedraw()
+void NCursesGUI::queueRedraw()
 {
     forceDraw = true;
 }
 
-bool Window::shouldRedraw()
+bool NCursesGUI::shouldRedraw()
 {
     return lastDrawMessageCount != messages.size();
 }
 
-void Window::getNewMessages()
+void NCursesGUI::getNewMessages()
 {
     unsigned int oldMessagesSize = messages.size();
     
@@ -127,7 +127,7 @@ void Window::getNewMessages()
 
 }
 
-void Window::handleInput( int c )
+void NCursesGUI::handleInput( int c )
 {
     DHCPInterface *dhcpInterface = Resources::Instance()->getDHCPInterface();
     if ( showFilter == true ) { // filter window is active
@@ -250,7 +250,7 @@ void Window::handleInput( int c )
     }
 }
 
-void Window::drawDetails()
+void NCursesGUI::drawDetails()
 {
     // print details window if we have asked for it
     if ( curMessage != NULL ) {
@@ -283,7 +283,7 @@ void Window::drawDetails()
     }
 }
 
-void Window::drawForge()
+void NCursesGUI::drawForge()
 {
     wclear( forgeWindow );
     mvwprintw( forgeWindow, 1, 5, "-- Send forged DHCP discovery --" );
@@ -292,7 +292,7 @@ void Window::drawForge()
     wnoutrefresh( forgeWindow );
 }
 
-void Window::drawFilter()
+void NCursesGUI::drawFilter()
 {
     wclear( filterWindow );
     Filter tempFilter;
@@ -316,7 +316,7 @@ void Window::drawFilter()
     wnoutrefresh( filterWindow );
 }
 
-void Window::draw()
+void NCursesGUI::draw()
 {
     if ( shouldRedraw() == true || forceDraw == true ) {
         forceDraw = false;
@@ -374,9 +374,9 @@ void Window::draw()
     }
 }
 
-void *Window::work( void *context )
+void *NCursesGUI::work( void *context )
 {
-    Window *parent = static_cast< Window* >( context );
+    NCursesGUI *parent = static_cast< NCursesGUI* >( context );
 
     while ( parent->timeToQuit == false ) {
         /** handle input from messageWindow ?? shoult it not be all windows? **/
