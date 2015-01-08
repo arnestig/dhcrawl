@@ -31,7 +31,6 @@ std::vector< std::string > errorLog;
 
 void cleanup()
 {
-	Resources::Instance()->DestroyInstance();
     sem_post( &exitSemaphore );
 }
 
@@ -56,10 +55,14 @@ int main( int argc, char *argv[] )
 	Resources::Instance()->getWindow()->init();
 	DHCPInterface *dhcpInterface = Resources::Instance()->getDHCPInterface();
     dhcpInterface->start();
-	dhcpInterface->sendDiscover( "00:11:22:33:44:55" );
+	//dhcpInterface->sendDiscover( "00:11:22:33:44:55" );
 
+    // wait for our exit semaphore to be posted
     sem_wait( &exitSemaphore );
     sem_destroy( &exitSemaphore );
+
+    // destroy our resources and threads
+	Resources::Instance()->DestroyInstance();
 
     // print possible errors
     for( std::vector< std::string >::iterator it = errorLog.begin(); it != errorLog.end(); ++it ) {
