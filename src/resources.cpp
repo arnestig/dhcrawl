@@ -25,15 +25,22 @@ Resources* Resources::instance = NULL;
 
 Resources::Resources()
     :   dhcpInterface( NULL ),
-		ncursesGUI( NULL )
+		ncursesGUI( NULL ),
+		textGUI( NULL )
 {
     dhcpInterface = new DHCPInterface();
-	ncursesGUI = new NCursesGUI();
 }
 
 Resources::~Resources()
 {
-	delete ncursesGUI;
+    if ( ncursesGUI != NULL ) {
+        delete ncursesGUI;
+    }
+
+    if ( textGUI != NULL ) {
+        delete textGUI;
+    }
+
 	delete dhcpInterface;
 }
 
@@ -56,8 +63,19 @@ DHCPInterface* Resources::getDHCPInterface() const
     return dhcpInterface;
 }
 
-NCursesGUI* Resources::getNCursesGUI() const
+NCursesGUI* Resources::getNCursesGUI()
 {
+	if ( ncursesGUI == NULL ) {
+        ncursesGUI = new NCursesGUI();
+    }
     return ncursesGUI;
+}
+
+TextGUI* Resources::getTextGUI()
+{
+	if ( textGUI == NULL ) {
+        textGUI = new TextGUI();
+    }
+    return textGUI;
 }
 

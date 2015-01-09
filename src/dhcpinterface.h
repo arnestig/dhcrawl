@@ -45,6 +45,7 @@ class DHCPInterface
 		void sendDiscover( std::string hardware );
         Filter* getFilter();
         std::vector< DHCPMessage* > getMessages();
+        DHCPMessage *waitForMessage();
 
 	private:
 		static void *work( void *context );
@@ -57,6 +58,7 @@ class DHCPInterface
         bool timeToQuit;
         Filter *filter;
         sem_t threadFinished;
+        sem_t waitSemaphore;
 		pthread_t worker;
 		pthread_mutex_t mutex;
 };

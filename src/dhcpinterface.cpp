@@ -45,6 +45,7 @@ DHCPInterface::DHCPInterface()
     name68.sin_addr.s_addr = INADDR_ANY;
 
 	sem_init( &threadFinished, 0, 0 );	
+	sem_init( &waitSemaphore, 0, 0 );	
 	pthread_mutex_init( &mutex, NULL );
 
     srand( time( NULL ) );
@@ -55,6 +56,7 @@ DHCPInterface::~DHCPInterface()
     timeToQuit = true;
     sem_wait( &threadFinished );
     sem_destroy( &threadFinished );
+    sem_destroy( &waitSemaphore );
 
 	pthread_mutex_destroy( &mutex );
     delete filter;
@@ -140,6 +142,31 @@ Filter* DHCPInterface::getFilter()
     return filter;
 }
 
+DHCPMessage *DHCPInterface::waitForMessage()
+{
+    // setup a timeout so we can wait a maximum of 40ms
+    struct timespec timeout;
+    clock_gettime( CLOCK_REALTIME, &timeout );
+    if ( timeout.tv_nsec + 40000000 > 999999999 ) {
+        timeout.tv_sec += 1;
+        timeout.tv_nsec += 40000000 - 999999999;
+    } else {
+        timeout.tv_nsec += 40000000;
+    }
+
+    // return a dhcp message if we don't timeout
+    if ( sem_timedwait( &waitSemaphore, &timeout ) == 0 ) {
+        pthread_mutex_lock( &mutex );
+        DHCPMessage *message = messages.back();
+        messages.pop_back();
+        pthread_mutex_unlock( &mutex );
+        return message;
+    }
+
+    // timeout, we return NULL
+    return NULL;
+}
+
 std::vector< DHCPMessage* > DHCPInterface::getMessages()
 {
     std::vector< DHCPMessage* > retvec;
@@ -193,6 +220,7 @@ void *DHCPInterface::work( void *context )
                 pthread_mutex_lock( &parent->mutex ); // lock our data mutex
                 parent->messages.insert( parent->messages.begin(), dhcpMessage );
                 pthread_mutex_unlock( &parent->mutex ); // unlock our data mutex
+                sem_post( &parent->waitSemaphore ); // post so that waitForMessage wakes up 
 			}
 		}
     }

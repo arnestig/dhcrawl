@@ -24,6 +24,7 @@
 
 #include "dhcpinterface.h"
 #include "ncursesgui.h"
+#include "textinterface.h"
 
 class Resources
 {
@@ -32,7 +33,8 @@ class Resources
         static void DestroyInstance();
 
         DHCPInterface* getDHCPInterface() const;
-        NCursesGUI* getNCursesGUI() const;
+        NCursesGUI* getNCursesGUI();
+        TextGUI* getTextGUI();
 
     private:
         static Resources* instance;
@@ -43,6 +45,7 @@ class Resources
         sem_t semaphore;
         DHCPInterface *dhcpInterface;
         NCursesGUI *ncursesGUI;
+        TextGUI *textGUI;
 };
 
 #endif

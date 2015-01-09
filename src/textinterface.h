@@ -19,68 +19,31 @@
     along with dhcrawl.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#ifndef __NCURSES_GUI__H_
-#define __NCURSES_GUI__H_
-
-#define Y_OFFSET_SEARCH 0
-#define Y_OFFSET_HELP 1
-#define Y_OFFSET_COMMANDS 2
-
-#define K_CTRL_D 4
-#define K_CTRL_K 11
-#define K_CTRL_T 20
-#define K_ESC 27
-#define K_ENTER 10
-#define K_BACKSPACE 127
-#define K_F5 269
-#define K_F6 270
+#ifndef __TEXT_INTERFACE__H
+#define __TEXT_INTERFACE__H
 
 #include <string>
 #include <vector>
-#include <ncursesw/curses.h>
-
 #include "dhcpmessage.h"
 
-class NCursesGUI
+class TextGUI
 {
     public:
-        NCursesGUI();
-        ~NCursesGUI();
-
-		void init();
+        TextGUI();
+        ~TextGUI();
 
     private:
 		static void *work( void *context );
-		void handleInput( int c );
-        void getNewMessages();
-        void queueRedraw();
-        bool shouldRedraw();
-		void draw();
-        void drawDetails();
-        void drawFilter();
-        void drawForge();
+        void printDetails( DHCPMessage *message );
+		void printMessage( DHCPMessage *message );
 
         std::string filterText[ 2 ];
         std::string forgeText;
-		unsigned int selectedPosition;
-		unsigned int filterCursPos;
-		int messageOffset;
         bool timeToQuit;
-        bool forceDraw;
         bool showDetails;
-        bool showFilter;
-        bool showForge;
-		unsigned int lastDrawMessageCount;
         sem_t threadFinished;
 		pthread_t worker;
 		std::vector< DHCPMessage* > messages;
-		DHCPMessage *curMessage;
-		WINDOW *helpWindow;
-		WINDOW *forgeWindow;
-		WINDOW *titleWindow;
-		WINDOW *messageWindow;
-		WINDOW *detailsWindow;
-		WINDOW *filterWindow;
 };
 
 #endif
