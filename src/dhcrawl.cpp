@@ -19,19 +19,8 @@
     along with dhcrawl.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include <iostream>
-#include <stdlib.h>
-#include <unistd.h>
-#include <getopt.h>
-#include <signal.h>
-
+#include "dhcrawl.h"
 #include "resources.h"
-
-sem_t exitSemaphore;
-std::vector< std::string > errorLog;
-static int use_tui;
-static std::string discoverMAC;
-static std::string argFilter[ 2 ];
 
 void cleanup()
 {
