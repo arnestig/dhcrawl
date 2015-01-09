@@ -35,6 +35,6 @@ static int use_tui;
 static std::string discoverMAC;
 static std::string argFilter[ 2 ];
 
-#define DHC_VERSION 1.0
+#define DHC_VERSION "1.0"
 
 #endif

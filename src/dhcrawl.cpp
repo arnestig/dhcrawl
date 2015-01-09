@@ -36,7 +36,7 @@ void handle_signal( int signal )
 
 void printVersion()
 {
-    std::cout << "dhcrawl version X.Y" << std::endl;
+    std::cout << "dhcrawl version " << DHC_VERSION << std::endl;
     exit( 0 );
 }
 
