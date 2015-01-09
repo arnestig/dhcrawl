@@ -29,9 +29,9 @@
 
 sem_t exitSemaphore;
 std::vector< std::string > errorLog;
-static int list_hashes;
 static int use_tui;
-static std::string forgeMAC;
+static std::string discoverMAC;
+static std::string argFilter[ 2 ];
 
 void cleanup()
 {
@@ -54,10 +54,11 @@ void printVersion()
 void printUsage()
 {
     std::cout << "Usage: dhcrawl [option(s)]" << std::endl;
-    std::cout << " -f  --forge=[mac]   Forge and send a DHCP discovery packet with the supplied MAC-address" << std::endl;
-    std::cout << " -h  --help          Display this information" << std::endl;
-    std::cout << "     --tui           Run dhcrawl in text user interface instead of NCurses GUI" << std::endl;
-    std::cout << " -v  --version       Print dhcrawl version" << std::endl;
+    std::cout << " -d  --discover=[mac]    Send a DHCP discovery packet with the supplied MAC-address" << std::endl;
+    std::cout << " -f  --filter=[from[,to]]  Filter DHCP packages on MAC or IP, from and to....." << std::endl;
+    std::cout << " -h  --help              Display this information" << std::endl;
+    std::cout << "     --tui               Run dhcrawl in text user interface instead of NCurses GUI" << std::endl;
+    std::cout << " -v  --version           Print dhcrawl version" << std::endl;
     exit( 0 );
 }
 
@@ -65,29 +66,41 @@ void parseArguments( int argc, char *argv[] )
 {
     int c;
     while ( 1 ) {
-
         static struct option long_options[] = {
-        { "help",       no_argument,    NULL,           'h' },
-        { "version",    no_argument,    NULL,           'v' },
-        { "tui",        no_argument,    &use_tui,       1 },
-        { "forge",      required_argument,   NULL,       'f' },
-        { 0,        0,              0,                  0 } };
+        { "help",       no_argument,        NULL,           'h' },
+        { "version",    no_argument,        NULL,           'v' },
+        { "tui",        no_argument,        &use_tui,       1   },
+        { "discover",   required_argument,  NULL,           'd' },
+        { 0,            0,                  0,              0 } };
 
         int option_index = 0;
-        c = getopt_long( argc, argv, "f:hv", long_options, &option_index );
+        c = getopt_long( argc, argv, "d:f:hv", long_options, &option_index );
         
         // are we at the end of our options? break in that case
         if ( c == -1 ) {
             break;
         }
 
+        int comma = 0;
+        std::string filterArg;
         switch ( c ) {
             case 0:
                 if ( long_options[ option_index ].flag != 0 ) {
                     break;
                 }
+            case 'd':
+                discoverMAC = optarg;
+                break; 
             case 'f':
-                forgeMAC = optarg;
+                filterArg = optarg;
+                comma = filterArg.find_first_of( "," );
+                if ( comma != -1 ) {
+                   argFilter[ 0 ] = filterArg.substr( 0, comma );
+                   argFilter[ 1 ] = filterArg.substr( comma + 1 );
+                } else {
+                   argFilter[ 0 ] = filterArg;
+                   argFilter[ 1 ] = filterArg;
+                }
                 break; 
             case 'v':
                 printVersion();
@@ -130,9 +143,14 @@ int main( int argc, char *argv[] )
 	DHCPInterface *dhcpInterface = Resources::Instance()->getDHCPInterface();
     dhcpInterface->start();
 
+    // check if we should add a filter to the DHCP interface, supplied from the command line
+    if ( argFilter[ 0 ].empty() == false && argFilter[ 1 ].empty() == false ) {
+        dhcpInterface->getFilter()->setFilter( argFilter[ 0 ], argFilter[ 1 ] );
+    }
+
     // check if forge command line was supplied, if so send a DHCP discovery with the MAC
-    if ( forgeMAC.empty() == false ) {
-        dhcpInterface->sendDiscover( forgeMAC );
+    if ( discoverMAC.empty() == false ) {
+        dhcpInterface->sendDiscover( discoverMAC );
     }
 
     // wait for our exit semaphore to be posted
