@@ -62,9 +62,9 @@ class NCursesGUI
 
         std::string filterText[ 2 ];
         std::string forgeText;
-		unsigned int selectedPosition;
+		int selectedPosition;
 		unsigned int filterCursPos;
-		int messageOffset;
+		unsigned int messageOffset;
         bool timeToQuit;
         bool forceDraw;
         bool showDetails;

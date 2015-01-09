@@ -199,7 +199,7 @@ void NCursesGUI::handleInput( int c )
     } else { // details window or default window is active
         switch ( c ) {
             case KEY_DOWN:
-                if ( selectedPosition + messageOffset < messages.size() - 1 ) {
+                if ( ( unsigned int ) selectedPosition + messageOffset + 1 < messages.size() ) {
                     int windowY, windowX;
                     getmaxyx( messageWindow, windowY, windowX );
                     if ( selectedPosition < windowY - 2 ) {
@@ -208,7 +208,7 @@ void NCursesGUI::handleInput( int c )
                         messageOffset++;
                     }
 
-                    if ( messages.size() > selectedPosition ) {
+                    if ( messages.size() > ( unsigned int ) selectedPosition ) {
                         curMessage = messages.at( selectedPosition );
                     } else {
                         curMessage = NULL;
@@ -238,7 +238,7 @@ void NCursesGUI::handleInput( int c )
                     selectedPosition--;
                 }
 
-                if ( messages.size() > selectedPosition ) {
+                if ( messages.size() > ( unsigned int ) selectedPosition ) {
                     curMessage = messages.at( selectedPosition );
                 } else {
                     curMessage = NULL;
@@ -346,7 +346,7 @@ void NCursesGUI::draw()
         getmaxyx( messageWindow, windowY, windowX );
 
         if ( messageOffset <= messages.size() ) {
-            unsigned int messageIndex = 0;
+            int messageIndex = 0;
             for( std::vector< DHCPMessage* >::iterator it = messages.begin() + messageOffset; it != messages.end() && it != messages.begin() + messageOffset + windowY - 1; ++it ) {
                 // draw background if this is our selected message
                 if ( messageIndex == selectedPosition ) {

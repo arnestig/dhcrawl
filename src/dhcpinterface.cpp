@@ -128,7 +128,7 @@ void DHCPInterface::sendDiscover( std::string hardware )
 	dhcpPackage.chaddr[ 4 ] = hw[ 4 ];
 	dhcpPackage.chaddr[ 5 ] = hw[ 5 ];
 
-    size_t packageSize = sizeof( dhcpPackage ) - 304 * sizeof( uint8_t );
+    int packageSize = sizeof( dhcpPackage ) - 304 * sizeof( uint8_t );
     if ( sendto( DHCPInterfaceSocket[ 1 ], &dhcpPackage, packageSize, 0, (struct sockaddr *)&dhcp_to, sizeof(dhcp_to) ) != packageSize ) {
         char error[ 128 ];
         sprintf( error, "Error during sendto(): %s (%d)", strerror( errno ), errno );
