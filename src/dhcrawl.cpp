@@ -116,7 +116,7 @@ int main( int argc, char *argv[] )
 	// check that we're running as superuser privileges for binding on DHCP port
 	if ( geteuid() != 0 ) {
 		std::cerr << "This application needs to run with super-user privileges." << std::endl;
-		exit(1);
+		exit( 1 );
 	}
 
     // start our user interface, graphical (default) or text if supplied with --tui
@@ -146,9 +146,11 @@ int main( int argc, char *argv[] )
     for( std::vector< std::string >::iterator it = errorLog.begin(); it != errorLog.end(); ++it ) {
         std::cerr << (*it) << std::endl;
     }
+
     if ( errorLog.empty() == false ) {
-        return 1;
+        exit( 1 );
     }
+
     return 0;
 }
 
