@@ -108,6 +108,7 @@ void DHCPInterface::sendDiscover( std::string hardware )
 	filter->setXid( xid );
 	dhcpPackage.xid = htonl( xid );
 	dhcpPackage.magic = htonl( 0x63825363 );
+    dhcpPackage.flags = htons( 0x8000 ); // Broadcast flag to avoid getting unicast messages back
 	dhcpPackage.options[ 0 ] = 53;
 	dhcpPackage.options[ 1 ] = 1;
 	dhcpPackage.options[ 2 ] = 1;
