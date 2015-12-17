@@ -57,17 +57,15 @@ NCursesGUI::~NCursesGUI()
     sem_wait( &threadFinished );
     sem_destroy( &threadFinished );
 
-	delwin( helpWindow );
-	delwin( forgeWindow );
-	delwin( messageWindow );
-	delwin( detailsWindow );
-	delwin( titleWindow );
-	delwin( filterWindow );
-    refresh();
-	endwin();
+    shutdownScreen();
 }
 
-void NCursesGUI::init()
+void handleResizeSignal( int signal )
+{
+    Resources::Instance()->getNCursesGUI()->resizeScreen();
+}
+
+void NCursesGUI::setupScreen()
 {
 	int y,x;
 	getmaxyx( stdscr, y, x );
@@ -91,6 +89,26 @@ void NCursesGUI::init()
 
 	// forge window
 	forgeWindow = newwin( 6, 50, y/2-3, x/2-25 );
+}
+
+void NCursesGUI::shutdownScreen()
+{
+	delwin( helpWindow );
+	delwin( forgeWindow );
+	delwin( messageWindow );
+	delwin( detailsWindow );
+	delwin( titleWindow );
+	delwin( filterWindow );
+    refresh();
+	endwin();
+}
+
+void NCursesGUI::init()
+{
+    // handle terminal resize signal
+    signal( SIGWINCH, handleResizeSignal );
+
+    setupScreen();
 
 	pthread_create( &worker, NULL, work, this );
 	pthread_detach( worker );
@@ -162,6 +180,9 @@ void NCursesGUI::handleInput( int c )
                         filterText[ filterCursPos ].erase( filterText[ filterCursPos ].end() - 1 );
                     }
                 }
+                break;
+            case KEY_RESIZE:
+                std::cout << "YEAH!" << std::endl;
                 break;
             default:
                 if ( c > 31 && c < 127 && filterCursPos < 2 ) {
@@ -397,3 +418,11 @@ void *NCursesGUI::work( void *context )
     return 0;
 }
 
+void NCursesGUI::resizeScreen()
+{
+    endwin();
+    //refresh();
+    shutdownScreen();
+    setupScreen();
+    queueRedraw();
+}

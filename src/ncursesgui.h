@@ -48,17 +48,20 @@ class NCursesGUI
         ~NCursesGUI();
 
 		void init();
+        void resizeScreen();
 
     private:
 		static void *work( void *context );
 		void handleInput( int c );
         void getNewMessages();
-        void queueRedraw();
         bool shouldRedraw();
+        void queueRedraw();
 		void draw();
         void drawDetails();
         void drawFilter();
         void drawForge();
+        void shutdownScreen();
+        void setupScreen();
 
         std::string filterText[ 2 ];
         std::string forgeText;
