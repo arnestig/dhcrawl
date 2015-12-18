@@ -323,6 +323,9 @@ void NCursesGUI::drawFilter()
 
     mvwprintw( filterWindow, 4, 1, "Filter: %s", type.c_str() );
     mvwprintw( filterWindow, 5, 1, "REQUEST/DISCOVER/etc filter" );
+    mvwprintw( filterWindow, 7, 1, "[ENTER] Save" );
+    mvwprintw( filterWindow, 8, 1, "[^K] Reset" );
+    mvwprintw( filterWindow, 9, 1, "[ESC] Cancel" );
     if ( filterCursPos == 0 ) {
         mvwprintw( filterWindow, 2, 1, "  To: %s", filterText[ 1 ].c_str() );
         mvwprintw( filterWindow, 1, 1, "From: %s", filterText[ 0 ].c_str() );
@@ -330,9 +333,6 @@ void NCursesGUI::drawFilter()
         mvwprintw( filterWindow, 1, 1, "From: %s", filterText[ 0 ].c_str() );
         mvwprintw( filterWindow, 2, 1, "  To: %s", filterText[ 1 ].c_str() );
     }
-    mvwprintw( filterWindow, 7, 1, "[ENTER] Save" );
-    mvwprintw( filterWindow, 8, 1, "[^K] Reset" );
-    mvwprintw( filterWindow, 9, 1, "[ESC] Cancel" );
     box( filterWindow, 0, 0 );
     wnoutrefresh( filterWindow );
 }
