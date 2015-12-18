@@ -26,8 +26,8 @@
 
 Filter::Filter()
 {
-    resetFilter();
 	pthread_mutex_init( &mutex, NULL );
+    resetFilter();
 }
 
 Filter::~Filter()
