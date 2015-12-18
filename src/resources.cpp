@@ -1,5 +1,5 @@
 /**
-    Copyright (C) 2014 dhcrawl - Probe DHCP servers to see what offers are sent
+    Copyright (C) 2014-2016 dhcrawl - Probe DHCP servers to see what offers are sent
 
     Written by Tobias Eliasson <arnestig@gmail.com>.
 
