@@ -168,6 +168,16 @@ DHCPMessage *DHCPInterface::waitForMessage()
     return NULL;
 }
 
+void DHCPInterface::clearMessages()
+{
+    pthread_mutex_lock( &mutex ); // lock our data mutex
+    for( std::vector< DHCPMessage* >::iterator it = messages.begin(); it != messages.end(); ++it ) {
+        delete (*it);
+    }
+    messages.clear();
+    pthread_mutex_unlock( &mutex ); // unlock our data mutex
+}
+
 std::vector< DHCPMessage* > DHCPInterface::getMessages()
 {
     std::vector< DHCPMessage* > retvec;

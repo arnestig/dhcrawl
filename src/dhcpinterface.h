@@ -44,6 +44,7 @@ class DHCPInterface
 		void stop();
 		void sendDiscover( std::string hardware );
         Filter* getFilter();
+        void clearMessages();
         std::vector< DHCPMessage* > getMessages();
         DHCPMessage *waitForMessage();
 

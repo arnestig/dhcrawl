@@ -181,9 +181,6 @@ void NCursesGUI::handleInput( int c )
                     }
                 }
                 break;
-            case KEY_RESIZE:
-                std::cout << "YEAH!" << std::endl;
-                break;
             default:
                 if ( c > 31 && c < 127 && filterCursPos < 2 ) {
                     filterText[ filterCursPos ].append( (char*)(&c) );
@@ -236,6 +233,10 @@ void NCursesGUI::handleInput( int c )
                     }
                 }
                 break;
+            case K_CTRL_K:
+                dhcpInterface->clearMessages();
+                showDetails = false;
+                break;
             case KEY_ENTER:
             case K_ENTER:
             case K_CTRL_D: // toggle details window
@@ -246,9 +247,6 @@ void NCursesGUI::handleInput( int c )
                 break;
             case K_F6:
                 showForge = true;
-                break;
-            case K_CTRL_T:
-                dhcpInterface->sendDiscover( "00:23:14:8f:46:d4" );
                 break;
             case KEY_UP:
                 if ( selectedPosition == 0 && messageOffset > 0 ) {
@@ -349,7 +347,7 @@ void NCursesGUI::draw()
         // draw help
         std::string type, range;
         Resources::Instance()->getDHCPInterface()->getFilter()->getFilterText( type, range );
-        mvwprintw( helpWindow, 1, 1, "Filter: %s%s (F5) | Toggle details: (C-D) | Forge DHCP discovery (F6)", type.c_str(), range.c_str() );
+        mvwprintw( helpWindow, 1, 1, "Filter: %s%s (F5) | Toggle details: (^D) | DHCP discovery: (F6) | Clear history: (^K)", type.c_str(), range.c_str() );
         box( helpWindow, 0, 0 );
         wnoutrefresh( helpWindow );
 
