@@ -36,7 +36,11 @@ void handle_signal( int signal )
 
 void printVersion()
 {
-    std::cout << "dhcrawl version " << DHC_VERSION << std::endl;
+    std::cout << "dhcrawl " << DHC_VERSION << std::endl;
+    std::cout << "Copyright (C) 2014-2016  Tobias Eliasson <arnestig@gmail.com" << std::endl;
+    std::cout << "Licencse GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>" << std::endl;
+    std::cout << "This is free software: you are free to change and redistribute it." << std::endl;
+    std::cout << "There is NO WARRANTY, to the extent permitted by law." << std::endl;
     exit( 0 );
 }
 
