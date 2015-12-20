@@ -34,7 +34,7 @@ class Resources
 
         DHCPInterface* getDHCPInterface() const;
         NCursesGUI* getNCursesGUI();
-        TextGUI* getTextGUI();
+        TextGUI* getTextGUI( bool showDetails );
 
     private:
         static Resources* instance;

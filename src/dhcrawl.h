@@ -32,6 +32,7 @@
 sem_t exitSemaphore;
 std::vector< std::string > errorLog;
 static int use_tui;
+static int showdetails;
 static std::string discoverMAC;
 static std::string argFilter[ 2 ];
 

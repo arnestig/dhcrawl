@@ -30,9 +30,9 @@
 #include "textinterface.h"
 #include "resources.h"
 
-TextGUI::TextGUI()
+TextGUI::TextGUI( bool showDetails )
 	:	timeToQuit( false ),
-        showDetails( false )
+        showDetails( showDetails )
 {
 	sem_init( &threadFinished, 0, 0 );	
     filterText[ 0 ] = "";
@@ -63,7 +63,7 @@ void TextGUI::printDetails( DHCPMessage *message )
     printf( "  FILE: %s.\n", curPackage.file );
     std::map< int, std::string > curOptions = message->getOptions();
     for( std::map< int, std::string >::iterator it = curOptions.begin(); it != curOptions.end(); ++it ) {
-        printf( "%3d-%-15s: %s", (*it).first,DHCPOptions::getOptionName( (*it).first ).c_str(), (*it).second.c_str() );
+        printf( "%3d-%-15s: %s\n", (*it).first,DHCPOptions::getOptionName( (*it).first ).c_str(), (*it).second.c_str() );
         if ( (*it).first == 55 ) { // print parameter request list if we have it
             std::vector< std::string > curParamList = message->getParameterRequestList();
             for( std::vector< std::string >::iterator pit = curParamList.begin(); pit != curParamList.end(); ++pit ) {
@@ -71,6 +71,7 @@ void TextGUI::printDetails( DHCPMessage *message )
             }
         }
     }
+    printf( "\n" );
 }
 
 void TextGUI::printMessage( DHCPMessage *message )

@@ -71,10 +71,10 @@ NCursesGUI* Resources::getNCursesGUI()
     return ncursesGUI;
 }
 
-TextGUI* Resources::getTextGUI()
+TextGUI* Resources::getTextGUI( bool showDetails )
 {
 	if ( textGUI == NULL ) {
-        textGUI = new TextGUI();
+        textGUI = new TextGUI( showDetails );
     }
     return textGUI;
 }

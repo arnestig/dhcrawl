@@ -29,7 +29,7 @@
 class TextGUI
 {
     public:
-        TextGUI();
+        TextGUI( bool showDetails );
         ~TextGUI();
 
     private:

@@ -64,10 +64,11 @@ void parseArguments( int argc, char *argv[] )
         { "version",    no_argument,        NULL,           'v' },
         { "tui",        no_argument,        &use_tui,       1   },
         { "discover",   required_argument,  NULL,           'd' },
+        { "showdetails",no_argument,        &showdetails,   1  },
         { 0,            0,                  0,              0 } };
 
         int option_index = 0;
-        c = getopt_long( argc, argv, "d:f:hv", long_options, &option_index );
+        c = getopt_long( argc, argv, "d:f:hsv", long_options, &option_index );
         
         // are we at the end of our options? break in that case
         if ( c == -1 ) {
@@ -127,7 +128,7 @@ int main( int argc, char *argv[] )
 
     // start our user interface, graphical (default) or text if supplied with --tui
 	if ( use_tui == 1 ) {
-        Resources::Instance()->getTextGUI();
+        Resources::Instance()->getTextGUI( showdetails );
     } else {
         Resources::Instance()->getNCursesGUI()->init();
     }
