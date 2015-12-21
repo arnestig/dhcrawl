@@ -47,11 +47,12 @@ void printVersion()
 void printUsage()
 {
     std::cout << "Usage: dhcrawl [option(s)]" << std::endl;
-    std::cout << " -d  --discover=[mac]    Send a DHCP discovery packet with the supplied MAC-address" << std::endl;
+    std::cout << " -d  --discover=[mac]      Send a DHCP discovery packet with the supplied MAC-address" << std::endl;
     std::cout << " -f  --filter=[from[,to]]  Filter DHCP packages on MAC or IP, from and to....." << std::endl;
-    std::cout << " -h  --help              Display this information" << std::endl;
-    std::cout << "     --tui               Run dhcrawl in text user interface instead of NCurses GUI" << std::endl;
-    std::cout << " -v  --version           Print dhcrawl version" << std::endl;
+    std::cout << " -h  --help                Display this information" << std::endl;
+    std::cout << "     --tui                 Run dhcrawl in text user interface instead of NCurses GUI" << std::endl;
+    std::cout << "     --showdetails         Print detailed packages (only when using --tui)" << std::endl;
+    std::cout << " -v  --version             Print dhcrawl version" << std::endl;
     exit( 0 );
 }
 
