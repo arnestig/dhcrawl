@@ -36,6 +36,5 @@ static int showdetails;
 static std::string discoverMAC;
 static std::string argFilter[ 2 ];
 
-#define DHC_VERSION "1.0"
-
 #endif
+

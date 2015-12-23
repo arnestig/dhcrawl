@@ -8,6 +8,12 @@ CFLAGS +=
 CPPFLAGS +=
 CXXFLAGS += -g -Wall
 LDFLAGS += -pthread -lrt -lncursesw
+GIT_INFO_REV = $(shell git rev-parse --short HEAD)
+GIT_DEFINE =-DGIT_HASH=\"\"
+
+ifneq (,$(GIT_INFO_REV))
+    GIT_DEFINE=-DGIT_HASH=\"$(GIT_INFO_REV)\"
+endif
 
 ifneq (,$(filter noopt,$(DEB_BUILD_OPTIONS)))
 	CXXFLAGS += -O0
@@ -31,7 +37,7 @@ $(PROGNAME): $(OBJFILES)
 
 obj/%.o: src/%.cpp 
 	@mkdir -p obj
-	$(CXX) -c $< -o $@ $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS)
+	$(CXX) -c $< -o $@ $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(GIT_DEFINE)
 
 clean:
 	rm -f $(OBJFILES) $(PROGNAME)
