@@ -34,6 +34,7 @@ NCursesGUI::NCursesGUI()
 	:	selectedPosition( 0 ),
 		filterCursPos( 0 ),
 		messageOffset( 0 ),
+        wantResize( false ),
         timeToQuit( false ),
         forceDraw( true ),
         showDetails( false ),
@@ -337,6 +338,14 @@ void NCursesGUI::drawFilter()
 
 void NCursesGUI::draw()
 {
+    if ( wantResize == true ) {
+        endwin();
+        shutdownScreen();
+        setupScreen();
+        queueRedraw();
+        wantResize = false;
+    }
+
     if ( shouldRedraw() == true || forceDraw == true ) {
         forceDraw = false;
         lastDrawMessageCount = messages.size();
@@ -418,9 +427,5 @@ void *NCursesGUI::work( void *context )
 
 void NCursesGUI::resizeScreen()
 {
-    endwin();
-    //refresh();
-    shutdownScreen();
-    setupScreen();
-    queueRedraw();
+    wantResize = true;
 }

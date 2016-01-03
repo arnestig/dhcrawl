@@ -68,6 +68,7 @@ class NCursesGUI
 		int selectedPosition;
 		unsigned int filterCursPos;
 		unsigned int messageOffset;
+        bool wantResize;
         bool timeToQuit;
         bool forceDraw;
         bool showDetails;
