@@ -28,7 +28,7 @@
 
 namespace Version {
 	static std::string name = "dhcrawl";
-	static std::string version = "1.0";
+	static std::string version = "1.1";
 
 	inline std::string getNumericVersion()
 	{
