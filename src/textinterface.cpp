@@ -29,7 +29,7 @@
 #include "textinterface.h"
 #include "resources.h"
 
-#if defined(__UNIX__)
+#if defined(__linux__)
     #include <sys/ioctl.h>
     #include <sys/types.h>
 #else

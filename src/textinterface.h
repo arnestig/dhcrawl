@@ -32,6 +32,7 @@ class TextGUI : public UserInterface
 
         void init();
         void work( void *context );
+        void resizeScreen(){};
 
     private:
         void printDetails( DHCPMessage *message );

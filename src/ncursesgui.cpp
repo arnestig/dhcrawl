@@ -29,11 +29,11 @@
 #include "resources.h"
 
 NCursesGUI::NCursesGUI()
-	:	selectedPosition( 0 ),
+    :   UserInterface( false ),
+		selectedPosition( 0 ),
 		filterCursPos( 0 ),
 		messageOffset( 0 ),
         wantResize( false ),
-        timeToQuit( false ),
         forceDraw( true ),
         showFilter( false ),
         showForge( false ),
@@ -53,7 +53,7 @@ NCursesGUI::~NCursesGUI()
 
 void handleResizeSignal( int signal )
 {
-    Resources::Instance()->getNCursesGUI()->resizeScreen();
+    Resources::Instance()->getUserInterface()->resizeScreen();
 }
 
 void NCursesGUI::setupScreen()

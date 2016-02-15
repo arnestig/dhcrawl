@@ -25,7 +25,7 @@
 #include "dhcpinterface.h"
 #include "userinterface.h"
 #include "textinterface.h"
-#if defined(__UNIX__)
+#if defined(__linux__)
     #include "ncursesgui.h"
 #endif
 

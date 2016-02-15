@@ -41,6 +41,7 @@ class UserInterface
         std::string filterText[ 2 ];
         std::string forgeText;
 		std::vector< DHCPMessage* > messages;
+        virtual void resizeScreen() = 0;
 
     private:
         pthread_t worker;

@@ -31,16 +31,16 @@
 
 #include <vector>
 #include <iostream>
-#if defined(__UNIX__)
+#if defined(__linux__)
     #include <sys/select.h>
     #include <sys/socket.h>
     typedef int SOCKET;
     #define closesocket(i) close(i)
-    #define ioctlsocket(i,l,ul ioctl(i,l,ul)
+    #define ioctlsocket(i,l,ul) ioctl(i,l,ul)
 #else
     #include <WinSock2.h>
     #include <time.h>
-#endif // defined(__UNIX__)
+#endif // defined(__linux__)
 
 class DHCPInterface
 {

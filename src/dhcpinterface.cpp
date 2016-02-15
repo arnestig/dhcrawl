@@ -65,7 +65,7 @@ DHCPInterface::~DHCPInterface()
 
 void DHCPInterface::start()
 {
-    #if !defined(__UNIX__)
+    #if !defined(__linux__)
         WSADATA info;
         if (WSAStartup(MAKEWORD(2,0), &info)) {
             char error[ 128 ];

@@ -67,6 +67,7 @@ class NCursesGUI : public UserInterface
 		unsigned int filterCursPos;
 		unsigned int messageOffset;
         bool wantResize;
+        bool forceDraw;
         bool showDetails;
         bool showFilter;
         bool showForge;

@@ -61,11 +61,11 @@ DHCPInterface* Resources::getDHCPInterface() const
 UserInterface* Resources::getUserInterface( bool use_tui, bool showdetails )
 {
     if ( userInterface == NULL ) {
-        #if !defined(__UNIX__)
+        #if !defined(__linux__)
             userInterface = dynamic_cast< TextGUI* >( new TextGUI( showdetails ) );
         #else
             if ( use_tui == true ) {
-                userInterface = dynamic_cast< TextGUI* >( new TextGUI() );
+                userInterface = dynamic_cast< TextGUI* >( new TextGUI( showdetails ) );
             } else {
                 userInterface = dynamic_cast< NCursesGUI* >( new NCursesGUI() );
             }

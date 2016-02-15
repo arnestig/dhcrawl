@@ -115,13 +115,13 @@ void parseArguments( int argc, char *argv[] )
 bool haveSUPrivileges()
 {
     bool retval = false;
-    #if defined(__UNIX__)
+    #if defined(__linux__)
         if ( geteuid() == 0 ) {
             retval = true;
         }
     #else
         retval = true;
-    #endif // defined(__UNIX__)
+    #endif // defined(__linux__)
     return retval;
 }
 

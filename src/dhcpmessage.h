@@ -32,13 +32,13 @@
 #include <semaphore.h>
 #include "dhcpoptions.h"
 
-#if defined(__UNIX__)
+#if defined(__linux__)
     #include <netdb.h>
     #include <sys/select.h>
     #include <sys/socket.h>
 #else
     #include <Winsock2.h>
-#endif // defined(__UNIX__)
+#endif // defined(__linux__)
 
 struct dhcp_t
 {
