@@ -25,17 +25,23 @@
 #include <vector>
 #include <map>
 #include <iostream>
-#include <netdb.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/select.h>
-#include <sys/socket.h>
 #include <semaphore.h>
 #include "dhcpoptions.h"
 
+#if defined(__UNIX__)
+    #include <netdb.h>
+    #include <sys/select.h>
+    #include <sys/socket.h>
+#else
+    #include <Winsock2.h>
+#endif // defined(__UNIX__)
+
 struct dhcp_t
-{ 
+{
     uint8_t opcode;
 	uint8_t htype;
 	uint8_t hlen;
@@ -80,7 +86,7 @@ class DHCPMessage
 		struct dhcp_t package;
         uint32_t serverIdentifier;
 		uint8_t messageType;
-		
+
 };
 
 #endif

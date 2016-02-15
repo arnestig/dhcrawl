@@ -23,8 +23,11 @@
 #define __RESOURCES_H__
 
 #include "dhcpinterface.h"
-#include "ncursesgui.h"
+#include "userinterface.h"
 #include "textinterface.h"
+#if defined(__UNIX__)
+    #include "ncursesgui.h"
+#endif
 
 class Resources
 {
@@ -33,8 +36,8 @@ class Resources
         static void DestroyInstance();
 
         DHCPInterface* getDHCPInterface() const;
-        NCursesGUI* getNCursesGUI();
-        TextGUI* getTextGUI( bool showDetails );
+        UserInterface* getUserInterface( bool  = false, bool showdetails = false );
+
 
     private:
         static Resources* instance;
@@ -44,8 +47,7 @@ class Resources
 
         sem_t semaphore;
         DHCPInterface *dhcpInterface;
-        NCursesGUI *ncursesGUI;
-        TextGUI *textGUI;
+        UserInterface *userInterface;
 };
 
 #endif

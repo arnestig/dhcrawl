@@ -29,7 +29,7 @@ DHCPMessage::DHCPMessage( struct dhcp_t copyPackage )
 {
 	// fix all network to host ordering here first so we don't have to worry about it
 	package.xid = ntohl( package.xid );
-	package.secs = ntohl( package.secs );
+	package.secs = ntohs( package.secs );
 	package.flags = ntohs( package.flags );
 	package.ciaddr = ntohl( package.ciaddr );
 	package.yiaddr = ntohl( package.yiaddr );

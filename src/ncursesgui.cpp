@@ -19,8 +19,6 @@
     along with dhcrawl.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include <sys/ioctl.h>
-#include <sys/types.h>
 #include <unistd.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -37,7 +35,6 @@ NCursesGUI::NCursesGUI()
         wantResize( false ),
         timeToQuit( false ),
         forceDraw( true ),
-        showDetails( false ),
         showFilter( false ),
         showForge( false ),
         lastDrawMessageCount( 0 ),
@@ -47,17 +44,10 @@ NCursesGUI::NCursesGUI()
 	initscr();
 	noecho();
 	start_color();
-	sem_init( &threadFinished, 0, 0 );	
-    filterText[ 0 ] = "";
-    filterText[ 1 ] = "";
 }
 
 NCursesGUI::~NCursesGUI()
 {
-    timeToQuit = true;
-    sem_wait( &threadFinished );
-    sem_destroy( &threadFinished );
-
     shutdownScreen();
 }
 
@@ -110,9 +100,6 @@ void NCursesGUI::init()
     signal( SIGWINCH, handleResizeSignal );
 
     setupScreen();
-
-	pthread_create( &worker, NULL, work, this );
-	pthread_detach( worker );
 }
 
 void NCursesGUI::queueRedraw()
@@ -128,7 +115,7 @@ bool NCursesGUI::shouldRedraw()
 void NCursesGUI::getNewMessages()
 {
     unsigned int oldMessagesSize = messages.size();
-    
+
     // get messages from DHCP interface
     messages = Resources::Instance()->getDHCPInterface()->getMessages();
 
@@ -140,7 +127,7 @@ void NCursesGUI::getNewMessages()
     }
 
     // assign curMessage to first message if it's NULL
-    if ( curMessage == NULL && messages.empty() == false ) { 
+    if ( curMessage == NULL && messages.empty() == false ) {
         curMessage = messages.back();
     }
 
@@ -236,12 +223,12 @@ void NCursesGUI::handleInput( int c )
                 break;
             case K_CTRL_K:
                 dhcpInterface->clearMessages();
-                showDetails = false;
+                showdetails = false;
                 break;
             case KEY_ENTER:
             case K_ENTER:
             case K_CTRL_D: // toggle details window
-                showDetails = !showDetails;
+                showdetails = !showdetails;
                 break;
             case K_F5:
                 showFilter = true;
@@ -379,7 +366,7 @@ void NCursesGUI::draw()
                 // draw background if this is our selected message
                 if ( messageIndex == selectedPosition ) {
                     wattron( messageWindow, COLOR_PAIR(1) );
-                } 
+                }
 
                 // print the line containing mac, xid, type, server id, client offered ip
                 mvwprintw( messageWindow, messageIndex++, 1, "%-20s%-11.8x%-15s%-18s%-18s",(*it)->getMACAddress().c_str(), (*it)->getXid(), DHCPOptions::getMessageTypeName( (*it)->getMessageType() ).c_str(), (*it)->getServerIdentifier().c_str(), (*it)->getOfferedIP().c_str()  );
@@ -388,9 +375,9 @@ void NCursesGUI::draw()
         }
 
         wnoutrefresh( messageWindow );
-        
+
         // draw detail window if user requested it
-        if ( showDetails == true ) {
+        if ( showdetails == true ) {
             drawDetails();
         } else if ( showFilter == true ) { // draw filter window if user requested it
             drawFilter();
@@ -402,7 +389,7 @@ void NCursesGUI::draw()
     }
 }
 
-void *NCursesGUI::work( void *context )
+void NCursesGUI::work( void *context )
 {
     NCursesGUI *parent = static_cast< NCursesGUI* >( context );
 
@@ -422,7 +409,6 @@ void *NCursesGUI::work( void *context )
     }
 
     sem_post( &parent->threadFinished );
-    return 0;
 }
 
 void NCursesGUI::resizeScreen()

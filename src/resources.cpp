@@ -25,20 +25,15 @@ Resources* Resources::instance = NULL;
 
 Resources::Resources()
     :   dhcpInterface( NULL ),
-		ncursesGUI( NULL ),
-		textGUI( NULL )
+		userInterface( NULL )
 {
     dhcpInterface = new DHCPInterface();
 }
 
 Resources::~Resources()
 {
-    if ( ncursesGUI != NULL ) {
-        delete ncursesGUI;
-    }
-
-    if ( textGUI != NULL ) {
-        delete textGUI;
+    if ( userInterface != NULL ) {
+        delete userInterface;
     }
 
 	delete dhcpInterface;
@@ -63,19 +58,20 @@ DHCPInterface* Resources::getDHCPInterface() const
     return dhcpInterface;
 }
 
-NCursesGUI* Resources::getNCursesGUI()
+UserInterface* Resources::getUserInterface( bool use_tui, bool showdetails )
 {
-	if ( ncursesGUI == NULL ) {
-        ncursesGUI = new NCursesGUI();
+    if ( userInterface == NULL ) {
+        #if !defined(__UNIX__)
+            userInterface = dynamic_cast< TextGUI* >( new TextGUI( showdetails ) );
+        #else
+            if ( use_tui == true ) {
+                userInterface = dynamic_cast< TextGUI* >( new TextGUI() );
+            } else {
+                userInterface = dynamic_cast< NCursesGUI* >( new NCursesGUI() );
+            }
+        #endif
+        userInterface->create();
     }
-    return ncursesGUI;
-}
-
-TextGUI* Resources::getTextGUI( bool showDetails )
-{
-	if ( textGUI == NULL ) {
-        textGUI = new TextGUI( showDetails );
-    }
-    return textGUI;
+    return userInterface;
 }
 

@@ -72,7 +72,7 @@ void parseArguments( int argc, char *argv[] )
 
         int option_index = 0;
         c = getopt_long( argc, argv, "d:f:hsv", long_options, &option_index );
-        
+
         // are we at the end of our options? break in that case
         if ( c == -1 ) {
             break;
@@ -87,7 +87,7 @@ void parseArguments( int argc, char *argv[] )
                 }
             case 'd':
                 discoverMAC = optarg;
-                break; 
+                break;
             case 'f':
                 filterArg = optarg;
                 comma = filterArg.find_first_of( "," );
@@ -98,7 +98,7 @@ void parseArguments( int argc, char *argv[] )
                    argFilter[ 0 ] = filterArg;
                    argFilter[ 1 ] = filterArg;
                 }
-                break; 
+                break;
             case 'v':
                 printVersion();
                 break;
@@ -112,29 +112,38 @@ void parseArguments( int argc, char *argv[] )
     }
 }
 
+bool haveSUPrivileges()
+{
+    bool retval = false;
+    #if defined(__UNIX__)
+        if ( geteuid() == 0 ) {
+            retval = true;
+        }
+    #else
+        retval = true;
+    #endif // defined(__UNIX__)
+    return retval;
+}
+
 int main( int argc, char *argv[] )
 {
     // register SIGINT signal to our signal handler
 	signal( SIGINT, handle_signal );
 
     // initialize our exit synchronizer semaphore
-	sem_init( &exitSemaphore, 0, 0 );	
+	sem_init( &exitSemaphore, 0, 0 );
 
     // parse command line arguments
     parseArguments( argc, argv );
 
 	// check that we're running as superuser privileges for binding on DHCP port
-	if ( geteuid() != 0 ) {
+	if ( haveSUPrivileges() == false ) {
 		std::cerr << "This application needs to run with super-user privileges." << std::endl;
 		exit( 1 );
 	}
 
     // start our user interface, graphical (default) or text if supplied with --tui
-	if ( use_tui == 1 ) {
-        Resources::Instance()->getTextGUI( showdetails );
-    } else {
-        Resources::Instance()->getNCursesGUI()->init();
-    }
+	Resources::Instance()->getUserInterface( use_tui, showdetails )->init();
 
     // start our DHCP interface
 	DHCPInterface *dhcpInterface = Resources::Instance()->getDHCPInterface();

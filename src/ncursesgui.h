@@ -38,10 +38,10 @@
 #include <string>
 #include <vector>
 #include <ncursesw/curses.h>
-
+#include "userinterface.h"
 #include "dhcpmessage.h"
 
-class NCursesGUI
+class NCursesGUI : public UserInterface
 {
     public:
         NCursesGUI();
@@ -49,9 +49,9 @@ class NCursesGUI
 
 		void init();
         void resizeScreen();
+        void work( void *context );
 
     private:
-		static void *work( void *context );
 		void handleInput( int c );
         void getNewMessages();
         bool shouldRedraw();
@@ -63,21 +63,15 @@ class NCursesGUI
         void shutdownScreen();
         void setupScreen();
 
-        std::string filterText[ 2 ];
-        std::string forgeText;
 		int selectedPosition;
 		unsigned int filterCursPos;
 		unsigned int messageOffset;
         bool wantResize;
-        bool timeToQuit;
-        bool forceDraw;
         bool showDetails;
         bool showFilter;
         bool showForge;
 		unsigned int lastDrawMessageCount;
-        sem_t threadFinished;
-		pthread_t worker;
-		std::vector< DHCPMessage* > messages;
+
 		DHCPMessage *curMessage;
 		WINDOW *helpWindow;
 		WINDOW *forgeWindow;

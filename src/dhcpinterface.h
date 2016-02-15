@@ -22,17 +22,25 @@
 #ifndef __DHCPINTERFACE_H__
 #define __DHCPINTERFACE_H__
 
-#include <vector>
-#include <iostream>
-#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/select.h>
-#include <sys/socket.h>
 
 #include "dhcpmessage.h"
 #include "filter.h"
+
+#include <vector>
+#include <iostream>
+#if defined(__UNIX__)
+    #include <sys/select.h>
+    #include <sys/socket.h>
+    typedef int SOCKET;
+    #define closesocket(i) close(i)
+    #define ioctlsocket(i,l,ul ioctl(i,l,ul)
+#else
+    #include <WinSock2.h>
+    #include <time.h>
+#endif // defined(__UNIX__)
 
 class DHCPInterface
 {
@@ -51,7 +59,7 @@ class DHCPInterface
 	private:
 		static void *work( void *context );
 
-		int DHCPInterfaceSocket[ 2 ];
+		SOCKET DHCPInterfaceSocket[ 2 ];
 		std::vector< DHCPMessage* > messages;
     	struct sockaddr_in dhcp_to;
     	struct sockaddr_in name67;

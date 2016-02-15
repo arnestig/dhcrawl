@@ -44,11 +44,12 @@ DHCPInterface::DHCPInterface()
     name68.sin_port = htons(68);
     name68.sin_addr.s_addr = INADDR_ANY;
 
-	sem_init( &threadFinished, 0, 0 );	
-	sem_init( &waitSemaphore, 0, 0 );	
+	sem_init( &threadFinished, 0, 0 );
+	sem_init( &waitSemaphore, 0, 0 );
 	pthread_mutex_init( &mutex, NULL );
 
     srand( time( NULL ) );
+    rand();
 }
 
 DHCPInterface::~DHCPInterface()
@@ -64,11 +65,21 @@ DHCPInterface::~DHCPInterface()
 
 void DHCPInterface::start()
 {
-    int socket_mode=1;
+    #if !defined(__UNIX__)
+        WSADATA info;
+        if (WSAStartup(MAKEWORD(2,0), &info)) {
+            char error[ 128 ];
+            sprintf( error, "Error during bind(): %s (%d)", strerror( errno ), errno );
+            errorLog.push_back( error );
+            raise( SIGINT );
+        }
+    #endif
+
+    unsigned long socket_mode=1;
 
     DHCPInterfaceSocket[ 0 ] = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
-    setsockopt( DHCPInterfaceSocket[ 0 ], SOL_SOCKET, SO_REUSEADDR, &socket_mode, sizeof( socket_mode ) ); // reuse address
-    setsockopt( DHCPInterfaceSocket[ 0 ], SOL_SOCKET, SO_BROADCAST, &socket_mode, sizeof( socket_mode ) ); // broadcast mode
+    setsockopt( DHCPInterfaceSocket[ 0 ], SOL_SOCKET, SO_REUSEADDR, (char*)&socket_mode, sizeof( socket_mode ) ); // reuse address
+    setsockopt( DHCPInterfaceSocket[ 0 ], SOL_SOCKET, SO_BROADCAST, (char*)&socket_mode, sizeof( socket_mode ) ); // broadcast mode
 
     if ( bind( DHCPInterfaceSocket[ 0 ], (struct sockaddr *)&name67, sizeof( name67 ) ) < 0 ) {
         char error[ 128 ];
@@ -78,8 +89,8 @@ void DHCPInterface::start()
     }
 
     DHCPInterfaceSocket[ 1 ] = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
-    setsockopt( DHCPInterfaceSocket[ 1 ], SOL_SOCKET, SO_REUSEADDR, &socket_mode, sizeof( socket_mode ) ); // reuse address
-    setsockopt( DHCPInterfaceSocket[ 1 ], SOL_SOCKET, SO_BROADCAST, &socket_mode, sizeof( socket_mode ) ); // broadcast mode
+    setsockopt( DHCPInterfaceSocket[ 1 ], SOL_SOCKET, SO_REUSEADDR, (char*)&socket_mode, sizeof( socket_mode ) ); // reuse address
+    setsockopt( DHCPInterfaceSocket[ 1 ], SOL_SOCKET, SO_BROADCAST, (char*)&socket_mode, sizeof( socket_mode ) ); // broadcast mode
 
     if ( bind( DHCPInterfaceSocket[ 1 ], (struct sockaddr *)&name68, sizeof( name68 ) ) < 0 ) {
         char error[ 128 ];
@@ -99,7 +110,8 @@ void DHCPInterface::stop()
 void DHCPInterface::sendDiscover( std::string hardware )
 {
 	struct dhcp_t dhcpPackage;
-	bzero( &dhcpPackage, sizeof( dhcpPackage ) );
+	//bzero( &dhcpPackage, sizeof( dhcpPackage ) );
+	memset( &dhcpPackage, '\0', sizeof( dhcpPackage ) );
 	dhcpPackage.opcode = 1;
 	dhcpPackage.htype = 1;
 	dhcpPackage.hlen = 6;
@@ -130,7 +142,7 @@ void DHCPInterface::sendDiscover( std::string hardware )
 	dhcpPackage.chaddr[ 5 ] = hw[ 5 ];
 
     int packageSize = sizeof( dhcpPackage ) - 304 * sizeof( uint8_t );
-    if ( sendto( DHCPInterfaceSocket[ 1 ], &dhcpPackage, packageSize, 0, (struct sockaddr *)&dhcp_to, sizeof(dhcp_to) ) != packageSize ) {
+    if ( sendto( DHCPInterfaceSocket[ 1 ], (char*)&dhcpPackage, packageSize, 0, (struct sockaddr *)&dhcp_to, sizeof(dhcp_to) ) != packageSize ) {
         char error[ 128 ];
         sprintf( error, "Error during sendto(): %s (%d)", strerror( errno ), errno );
         errorLog.push_back( error );
@@ -225,13 +237,13 @@ void *DHCPInterface::work( void *context )
 			if ( FD_ISSET( sockfd, &read ) ) {
 				// get data from socket
 				struct dhcp_t dhcpPackage;
-				recv( sockfd, &dhcpPackage, sizeof( dhcpPackage ), 0 );
+				recv( sockfd, (char*)&dhcpPackage, sizeof(dhcp_t), 0 );
 				DHCPMessage *dhcpMessage = new DHCPMessage( dhcpPackage );
 
                 pthread_mutex_lock( &parent->mutex ); // lock our data mutex
                 parent->messages.insert( parent->messages.begin(), dhcpMessage );
                 pthread_mutex_unlock( &parent->mutex ); // unlock our data mutex
-                sem_post( &parent->waitSemaphore ); // post so that waitForMessage wakes up 
+                sem_post( &parent->waitSemaphore ); // post so that waitForMessage wakes up
 			}
 		}
     }

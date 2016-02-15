@@ -1,5 +1,5 @@
 /**
-    Copyright (C) 2014-2016 dhcrawl - Probe DHCP servers to see what offers are sent
+    Copyright (C) 2014-2016 dhcrawl - Probe DHCPInterface servers to see what offers are sent
 
     Written by Tobias Eliasson <arnestig@gmail.com>.
 
@@ -19,24 +19,31 @@
     along with dhcrawl.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#ifndef __TEXT_INTERFACE__H
-#define __TEXT_INTERFACE__H
-
 #include "userinterface.h"
 
-class TextGUI : public UserInterface
+UserInterface::UserInterface( bool showdetails )
+    :   showdetails( showdetails )
 {
-    public:
-        TextGUI( bool showdetails );
-        ~TextGUI();
+}
 
-        void init();
-        void work( void *context );
+UserInterface::~UserInterface()
+{
+    timeToQuit = true;
+    sem_wait( &threadFinished );
+    sem_destroy( &threadFinished );
+}
 
-    private:
-        void printDetails( DHCPMessage *message );
-		void printMessage( DHCPMessage *message );
-};
+void UserInterface::create()
+{
+    sem_init( &threadFinished, 0, 0 );
+    filterText[ 0 ] = "";
+    filterText[ 1 ] = "";
+	pthread_create( &worker, NULL, (void*(*)(void*))UserInterface::createWork, this );
+	pthread_detach( worker );
+}
 
-#endif
-
+void UserInterface::createWork( UserInterface *instance )
+{
+    instance->init();
+    instance->work( instance );
+}

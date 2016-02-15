@@ -19,8 +19,7 @@
     along with dhcrawl.  If not, see <http://www.gnu.org/licenses/>.
 **/
 
-#include <sys/ioctl.h>
-#include <sys/types.h>
+
 #include <unistd.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -30,22 +29,25 @@
 #include "textinterface.h"
 #include "resources.h"
 
-TextGUI::TextGUI( bool showDetails )
-	:	timeToQuit( false ),
-        showDetails( showDetails )
+#if defined(__UNIX__)
+    #include <sys/ioctl.h>
+    #include <sys/types.h>
+#else
+
+#endif
+
+TextGUI::TextGUI( bool showdetails ) : UserInterface( showdetails )
 {
-	sem_init( &threadFinished, 0, 0 );	
-    filterText[ 0 ] = "";
-    filterText[ 1 ] = "";
-	pthread_create( &worker, NULL, work, this );
-	pthread_detach( worker );
 }
 
 TextGUI::~TextGUI()
 {
-    timeToQuit = true;
-    sem_wait( &threadFinished );
-    sem_destroy( &threadFinished );
+    std::cout << "~TextGUI" << std::endl;
+}
+
+void TextGUI::init()
+{
+
 }
 
 void TextGUI::printDetails( DHCPMessage *message )
@@ -82,12 +84,12 @@ void TextGUI::printMessage( DHCPMessage *message )
     printf( "%-20s%-11.8x%-15s%-18s%-18s\n", message->getMACAddress().c_str(), message->getXid(), DHCPOptions::getMessageTypeName( message->getMessageType() ).c_str(), message->getServerIdentifier().c_str(), message->getOfferedIP().c_str()  );
 
     // draw detail window if user requested it
-    if ( showDetails == true ) {
+    if ( showdetails == true ) {
         printDetails( message );
-    } 
+    }
 }
 
-void *TextGUI::work( void *context )
+void TextGUI::work( void *context )
 {
     TextGUI *parent = static_cast< TextGUI* >( context );
 
@@ -103,6 +105,4 @@ void *TextGUI::work( void *context )
     }
 
     sem_post( &parent->threadFinished );
-    return 0;
 }
-
