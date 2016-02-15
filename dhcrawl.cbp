@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="dhcrawl" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/dhcrawl" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters="-d 00:11:22:33:44:55 --showdetails" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/dhcrawl" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+			<Add option="-DWIN32_LEAN_AND_MEAN" />
+		</Compiler>
+		<Linker>
+			<Add option="-static" />
+			<Add option="-static-libgcc" />
+			<Add option="-static-libstdc++" />
+			<Add option="-mthreads" />
+			<Add library="ws2_32" />
+		</Linker>
+		<Unit filename="src/dhcpinterface.cpp" />
+		<Unit filename="src/dhcpinterface.h" />
+		<Unit filename="src/dhcpmessage.cpp" />
+		<Unit filename="src/dhcpmessage.h" />
+		<Unit filename="src/dhcpoptions.h" />
+		<Unit filename="src/dhcrawl.cpp" />
+		<Unit filename="src/dhcrawl.h" />
+		<Unit filename="src/filter.cpp" />
+		<Unit filename="src/filter.h" />
+		<Unit filename="src/formatter.h" />
+		<Unit filename="src/ncursesgui.cpp">
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="src/ncursesgui.h">
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="src/resources.cpp" />
+		<Unit filename="src/resources.h" />
+		<Unit filename="src/textinterface.cpp" />
+		<Unit filename="src/textinterface.h" />
+		<Unit filename="src/userinterface.cpp" />
+		<Unit filename="src/userinterface.h" />
+		<Unit filename="src/version.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
