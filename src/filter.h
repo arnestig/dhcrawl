@@ -35,7 +35,7 @@ namespace FilterType {
         XID_FILTER = 3
     };
     
-    inline std::string getFilterTypeName( FilterType::FilterType filterType ) {
+    inline std::string getFilterTypeName( FilterType filterType ) {
         switch( filterType ) {
             case IP_FILTER:
                 return "IP";
