@@ -42,7 +42,6 @@ TextGUI::TextGUI( bool showdetails ) : UserInterface( showdetails )
 
 TextGUI::~TextGUI()
 {
-    std::cout << "~TextGUI" << std::endl;
 }
 
 void TextGUI::init()
