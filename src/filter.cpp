@@ -105,7 +105,7 @@ void Filter::getFilterText( std::string &type, std::string &range )
 	pthread_mutex_lock( &mutex );
     type = FilterType::getFilterTypeName( filterType );
     if ( filterType == FilterType::XID_FILTER ) {
-        char buf[ 8 ];
+        char buf[ 9 ];
         sprintf( buf, "%.8x", xid );
         range = buf;
     } else if ( filterType == FilterType::MAC_FILTER || filterType == FilterType::IP_FILTER ) {
